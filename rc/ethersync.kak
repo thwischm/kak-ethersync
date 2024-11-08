@@ -22,5 +22,7 @@ define-command -hidden es-did-change -docstring "Notify language server about bu
     }
 }
 
-hook -group lsp %arg{1} InsertIdle .* es-did-change
-hook -group lsp %arg{1} NormalIdle .* es-did-change
+define-command es-enable -docstring "Enable Ethersync" %{
+	hook -group es %arg{1} InsertIdle .* es-did-change
+	hook -group es %arg{1} NormalIdle .* es-did-change
+}
