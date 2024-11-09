@@ -5,6 +5,8 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.92"
+itertools = "0.13.0"
 serde = { version = "1.0.214", features = ["derive"] }
 serde_json = "1.0.132"
 similar = "2.6.0"
+unicode-segmentation = "1.12.0"

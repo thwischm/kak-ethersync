@@ -1,14 +1,13 @@
+use itertools::Itertools;
+use std::{io::{BufRead, BufReader}, os::unix::net::UnixStream, thread};
 use serde::{Deserialize, Serialize};
-use similar::{utils::TextDiffRemapper, DiffOp, TextDiff};
-use std::{
-    fs::{self, File},
-    iter,
-    os::unix::net::UnixStream,
-};
+use similar::{DiffOp, TextDiff};
+use std::fs;
+use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
-pub enum EditorProtocolMessageToEditor {
+enum EditorProtocolMessageToEditor {
     Edit {
         uri: DocumentUri,
         revision: usize,
@@ -23,15 +22,15 @@ pub enum EditorProtocolMessageToEditor {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct EditorProtocolMessageError {
-    pub code: i32,
-    pub message: String,
-    pub data: Option<String>,
+struct EditorProtocolMessageError {
+    code: i32,
+    message: String,
+    data: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
-pub enum JSONRPCResponse {
+enum JSONRPCResponse {
     RequestSuccess {
         id: usize,
         result: String,
@@ -43,65 +42,81 @@ pub enum JSONRPCResponse {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct JSONRPCVersionTag;
+
+impl Serialize for JSONRPCVersionTag {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str("2.0")
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
-pub enum JSONRPCFromEditor {
+enum JSONRPCFromEditor {
     Request {
+        jsonrpc: JSONRPCVersionTag,
         id: usize,
         #[serde(flatten)]
         payload: EditorProtocolMessageFromEditor,
     },
     Notification {
+        jsonrpc: JSONRPCVersionTag,
         #[serde(flatten)]
         payload: EditorProtocolMessageFromEditor,
     },
-}
-
-impl JSONRPCFromEditor {
-    pub fn from_jsonrpc(jsonrpc: &str) -> Result<Self, anyhow::Error> {
-        let message = serde_json::from_str(jsonrpc)?;
-        Ok(message)
-    }
 }
 
 type DocumentUri = String;
 type CursorId = String;
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Position {
-    pub line: usize,
-    pub character: usize,
+struct Position {
+    line: usize,
+    character: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Range {
-    pub start: Position,
-    pub end: Position,
+struct Range {
+    start: Position,
+    end: Position,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct EditorTextOp {
-    pub range: Range,
-    pub replacement: String,
+struct EditorTextOp {
+    range: Range,
+    replacement: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct EditorTextDelta(pub Vec<EditorTextOp>);
+struct EditorTextDelta(Vec<EditorTextOp>);
 
 impl EditorTextDelta {
     fn from_diff(old: &str, new: &str) -> Self {
-        let line_ends: Vec<_> = old.match_indices('\n').map(|(i, _)| i).collect();
+        let old = UnicodeSegmentation::graphemes(old, true).collect_vec();
+        let new = UnicodeSegmentation::graphemes(new, true).collect_vec();
+
+        let line_ends: Vec<_> = old
+            .iter()
+            .positions(|&s| s == "\n" || s == "\r\n")
+            .collect();
         let index_to_position = |i| {
             let line = line_ends.partition_point(|&x| x < i);
-            let start_of_current_line = if line == 0 {0} else {line_ends[line - 1] + 1};
+            let start_of_current_line = if line == 0 {
+                0
+            } else {
+                line_ends[line - 1] + 1
+            };
             Position {
                 line,
                 character: i - start_of_current_line,
             }
         };
 
-        let diff = TextDiff::from_chars(old, new);
-        dbg!(diff.ops());
+        let diff = TextDiff::from_slices(&old, &new);
         let text_ops = diff
             .ops()
             .iter()
@@ -127,7 +142,7 @@ impl EditorTextDelta {
                         start: index_to_position(old_index),
                         end: index_to_position(old_index),
                     },
-                    replacement: new[new_index..new_index + new_len].to_string(),
+                    replacement: new[new_index..new_index + new_len].join(""),
                 }),
                 DiffOp::Replace {
                     old_index,
@@ -139,7 +154,7 @@ impl EditorTextDelta {
                         start: index_to_position(old_index),
                         end: index_to_position(old_index + old_len),
                     },
-                    replacement: new[new_index..new_index + new_len].to_string(),
+                    replacement: new[new_index..new_index + new_len].join(""),
                 }),
             })
             .collect();
@@ -149,7 +164,7 @@ impl EditorTextDelta {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
-pub enum EditorProtocolMessageFromEditor {
+enum EditorProtocolMessageFromEditor {
     Open {
         uri: DocumentUri,
     },
@@ -185,24 +200,43 @@ impl Iterator for Versions {
     }
 }
 
-fn main() -> anyhow::Result<()> {
-    // let socket_path = "/tmp/ethersync";
-    // let stream = UnixStream::connect(socket_path)?;
-    // let stream = BufReader::new(stream);
-    // for line in stream.lines() {
-    //     let line = line.unwrap();
-    //     let message: serde_json::Result<EditorProtocolMessageToEditor> = serde_json::from_str(&line);
-    //     println!("{:#?}", message)
-    // }
-    // Ok(())
+fn listen_to_editor_messages() -> anyhow::Result<()> {
     let fifo_path = "/tmp/ethersync-kak-fifo";
     let mut prev_version = "".to_string();
     for new_version in Versions::new(fifo_path.to_string()) {
         println!(
-            "{:#?}",
-            EditorTextDelta::from_diff(&prev_version, &new_version)
+            "{}",
+            serde_json::to_string(&JSONRPCFromEditor::Request {
+                jsonrpc: JSONRPCVersionTag,
+                id: 42,
+                payload: EditorProtocolMessageFromEditor::Edit {
+                    delta: EditorTextDelta::from_diff(&prev_version, &new_version),
+                    uri: "todo".to_string(),
+                    revision: 42
+                }
+            })?
         );
         prev_version = new_version;
     }
+    Ok(())
+}
+
+fn listen_to_daemon_messages() -> anyhow::Result<()> {
+    let socket_path = "/tmp/ethersync";
+    let stream = UnixStream::connect(socket_path)?;
+    let stream = BufReader::new(stream);
+    for line in stream.lines() {
+        let line = line.unwrap();
+        let message: serde_json::Result<EditorProtocolMessageToEditor> = serde_json::from_str(&line);
+        println!("{:#?}", message)
+    }
+    Ok(())
+}
+
+fn main() -> anyhow::Result<()> {
+    let editor_thread = thread::spawn(listen_to_editor_messages);
+    let daemon_thread = thread::spawn(listen_to_daemon_messages);
+    editor_thread.join().expect("couldn't join editor thread")?;
+    daemon_thread.join().expect("couldn't join daemon thread")?;
     Ok(())
 }
