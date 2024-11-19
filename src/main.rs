@@ -1,14 +1,11 @@
 use anyhow::anyhow;
-use core::num;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
-use std::fs;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
     os::unix::net::UnixStream,
-    str::FromStr,
     thread,
 };
 use unicode_segmentation::UnicodeSegmentation;
@@ -331,24 +328,41 @@ impl Iterator for EditorMessages {
 
 fn listen_to_editor_messages() -> anyhow::Result<()> {
     let fifo_path = "/tmp/ethersync-kak-fifo";
-    let mut prev_version = "".to_string();
-    // for new_version in FifoMessages::new(fifo_path.to_string()) {
-    //     println!(
-    //         "{}",
-    //         serde_json::to_string(&JSONRPCFromEditor::Request {
-    //             jsonrpc: JSONRPCVersionTag,
-    //             id: 42,
-    //             payload: EditorProtocolMessageFromEditor::Edit {
-    //                 delta: EditorTextDelta::from_diff(&prev_version, &new_version),
-    //                 uri: "todo".to_string(),
-    //                 revision: 42
-    //             }
-    //         })?
-    //     );
-    //     prev_version = new_version;
-    // }
+    let mut prev_content = "".to_string();
     for message in EditorMessages::new(fifo_path.to_string())? {
-        println!("message: {message:?}")
+        let relayed_message = match message? {
+            MessageFromEditor::BufferChanged {
+                file_path,
+                new_content,
+            } => {
+                let relayed = EditorProtocolMessageFromEditor::Edit {
+                    delta: EditorTextDelta::from_diff(&prev_content, &new_content),
+                    uri: "file://".to_owned() + &file_path,
+                    revision: 42,
+                };
+                prev_content = new_content;
+                relayed
+            }
+            MessageFromEditor::BufferCreated { file_path } => {
+                EditorProtocolMessageFromEditor::Open {
+                    uri: "file://".to_owned() + &file_path,
+                }
+            }
+            MessageFromEditor::CursorMoved { file_path, cursors } => {
+                EditorProtocolMessageFromEditor::Cursor {
+                    uri: "file://".to_owned() + &file_path,
+                    ranges: cursors,
+                }
+            }
+        };
+        println!(
+            "{}",
+            serde_json::to_string(&JSONRPCFromEditor::Request {
+                jsonrpc: JSONRPCVersionTag,
+                id: 42,
+                payload: relayed_message
+            })?
+        );
     }
     Ok(())
 }
