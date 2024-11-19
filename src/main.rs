@@ -1,8 +1,16 @@
+use anyhow::anyhow;
+use core::num;
 use itertools::Itertools;
-use std::{io::{BufRead, BufReader}, os::unix::net::UnixStream, thread};
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::fs;
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    os::unix::net::UnixStream,
+    str::FromStr,
+    thread,
+};
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -162,6 +170,28 @@ impl EditorTextDelta {
     }
 }
 
+fn position_from_kak_selection_desc(desc: &str) -> anyhow::Result<Position> {
+    let (line, character) = desc.split_once(".").ok_or(anyhow!("invalid position"))?;
+    Ok(Position {
+        line: line.parse()?,
+        character: character.parse()?,
+    })
+}
+
+fn range_from_kak_selection_desc(desc: &str) -> anyhow::Result<Range> {
+    let (start, end) = desc.split_once(",").ok_or(anyhow!("invalid range"))?;
+    Ok(Range {
+        start: position_from_kak_selection_desc(start)?,
+        end: position_from_kak_selection_desc(end)?,
+    })
+}
+
+fn ranges_from_kak_selection_desc(desc: &str) -> anyhow::Result<Vec<Range>> {
+    desc.split(" ")
+        .map(range_from_kak_selection_desc)
+        .try_collect()
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
 enum EditorProtocolMessageFromEditor {
@@ -182,41 +212,143 @@ enum EditorProtocolMessageFromEditor {
     },
 }
 
-struct Versions {
+struct FifoLines {
     fifo_path: String,
+    fifo_lines: std::io::Lines<BufReader<File>>,
 }
 
-impl Versions {
-    fn new(fifo_path: String) -> Versions {
-        Versions { fifo_path }
+impl FifoLines {
+    fn new(fifo_path: String) -> std::io::Result<FifoLines> {
+        let fifo_lines = BufReader::new(File::open(&fifo_path)?).lines();
+        Ok(FifoLines {
+            fifo_path,
+            fifo_lines,
+        })
     }
 }
 
-impl Iterator for Versions {
-    type Item = String;
+impl Iterator for FifoLines {
+    type Item = std::io::Result<String>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        Some(fs::read_to_string(&self.fifo_path).expect("could not open fifo"))
+        match self.fifo_lines.next() {
+            Some(line) => Some(line),
+            None => match File::open(&self.fifo_path) {
+                Ok(fifo) => {
+                    self.fifo_lines = BufReader::new(fifo).lines();
+                    self.next()
+                }
+                Err(e) => Some(Err(e)),
+            },
+        }
+    }
+}
+
+#[derive(Debug)]
+enum MessageFromEditor {
+    BufferChanged {
+        file_path: String,
+        new_content: String,
+    },
+    BufferCreated {
+        file_path: String,
+    },
+    CursorMoved {
+        file_path: String,
+        cursors: Vec<Range>,
+    },
+}
+
+struct EditorMessages {
+    fifo_lines: FifoLines,
+}
+
+impl EditorMessages {
+    fn new(fifo_path: String) -> std::io::Result<Self> {
+        Ok(EditorMessages {
+            fifo_lines: FifoLines::new(fifo_path)?,
+        })
+    }
+}
+
+impl Iterator for EditorMessages {
+    type Item = anyhow::Result<MessageFromEditor>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.fifo_lines.next() {
+            Some(Ok(message)) => match message.as_str() {
+                "BufferChanged" => {
+                    fn read_buffer_changed_message(
+                        fifo_lines: &mut FifoLines,
+                    ) -> anyhow::Result<MessageFromEditor> {
+                        let file_path = fifo_lines
+                            .next()
+                            .ok_or(anyhow!("invalid BufferChanged message"))??;
+                        let num_lines: usize = fifo_lines
+                            .next()
+                            .ok_or(anyhow!("invalid BufferChanged message"))??
+                            .parse()?;
+                        let content: Vec<String> = fifo_lines.take(num_lines).try_collect()?;
+                        if content.len() < num_lines {
+                            return Err(anyhow!("invalid BufferChanged message"));
+                        }
+                        let content = content.join("\n");
+                        Ok(MessageFromEditor::BufferChanged {
+                            new_content: content,
+                            file_path,
+                        })
+                    }
+                    Some(read_buffer_changed_message(&mut self.fifo_lines))
+                }
+                "BufferCreated" => match self.fifo_lines.next() {
+                    Some(Ok(file_path)) => Some(Ok(MessageFromEditor::BufferCreated { file_path })),
+                    _ => Some(Err(anyhow!("invalid BufferCreated message"))),
+                },
+                "CursorMoved" => {
+                    fn read_cursor_moved_message(
+                        fifo_lines: &mut FifoLines,
+                    ) -> anyhow::Result<MessageFromEditor> {
+                        let file_path = fifo_lines
+                            .next()
+                            .ok_or(anyhow!("invalid CursorMoved message"))??;
+                        let cursors = fifo_lines
+                            .next()
+                            .ok_or(anyhow!("invalid CursorMoved message"))??;
+                        Ok(MessageFromEditor::CursorMoved {
+                            file_path,
+                            cursors: ranges_from_kak_selection_desc(&cursors)?,
+                        })
+                    }
+                    Some(read_cursor_moved_message(&mut self.fifo_lines))
+                }
+                _ => Some(Err(anyhow!("unknown message"))),
+            },
+            Some(Err(e)) => Some(Err(e.into())),
+            None => None,
+        }
     }
 }
 
 fn listen_to_editor_messages() -> anyhow::Result<()> {
     let fifo_path = "/tmp/ethersync-kak-fifo";
     let mut prev_version = "".to_string();
-    for new_version in Versions::new(fifo_path.to_string()) {
-        println!(
-            "{}",
-            serde_json::to_string(&JSONRPCFromEditor::Request {
-                jsonrpc: JSONRPCVersionTag,
-                id: 42,
-                payload: EditorProtocolMessageFromEditor::Edit {
-                    delta: EditorTextDelta::from_diff(&prev_version, &new_version),
-                    uri: "todo".to_string(),
-                    revision: 42
-                }
-            })?
-        );
-        prev_version = new_version;
+    // for new_version in FifoMessages::new(fifo_path.to_string()) {
+    //     println!(
+    //         "{}",
+    //         serde_json::to_string(&JSONRPCFromEditor::Request {
+    //             jsonrpc: JSONRPCVersionTag,
+    //             id: 42,
+    //             payload: EditorProtocolMessageFromEditor::Edit {
+    //                 delta: EditorTextDelta::from_diff(&prev_version, &new_version),
+    //                 uri: "todo".to_string(),
+    //                 revision: 42
+    //             }
+    //         })?
+    //     );
+    //     prev_version = new_version;
+    // }
+    for message in EditorMessages::new(fifo_path.to_string())? {
+        println!("message: {message:?}")
     }
     Ok(())
 }
@@ -227,7 +359,8 @@ fn listen_to_daemon_messages() -> anyhow::Result<()> {
     let stream = BufReader::new(stream);
     for line in stream.lines() {
         let line = line.unwrap();
-        let message: serde_json::Result<EditorProtocolMessageToEditor> = serde_json::from_str(&line);
+        let message: serde_json::Result<EditorProtocolMessageToEditor> =
+            serde_json::from_str(&line);
         println!("{:#?}", message)
     }
     Ok(())

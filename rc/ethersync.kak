@@ -16,13 +16,37 @@ define-command -hidden es-if-changed-since -params 3 -docstring %{
     }
 }
 
-define-command -hidden es-did-change -docstring "Notify language server about buffer change" %{
+define-command -hidden es-send -params 1.. %{
+    echo -end-of-line -to-file /tmp/ethersync-kak-fifo %arg{@}
+}
+
+define-command -hidden es-did-change %{
     es-if-changed-since es_timestamp %opt{es_timestamp} %{
+        es-send "BufferChanged"
+        es-send %val{buffile}
+        es-send %val{buf_line_count}
 	    write -force /tmp/ethersync-kak-fifo
     }
+}
+
+define-command -hidden es-open-file %{
+    es-send "BufferCreated"
+    es-send %val{buffile}
+}
+
+define-command -hidden es-cursor-moved %{
+    es-send "CursorMoved"
+    es-send %val{buffile}
+    es-send %val{selections_char_desc}
 }
 
 define-command es-enable -docstring "Enable Ethersync" %{
 	hook -group es %arg{1} InsertIdle .* es-did-change
 	hook -group es %arg{1} NormalIdle .* es-did-change
+
+	hook -group es %arg{1} InsertIdle .* es-cursor-moved
+	hook -group es %arg{1} NormalIdle .* es-cursor-moved
+
+	hook -group es %arg{1} BufCreate .* es-open-file
+	es-open-file
 }
