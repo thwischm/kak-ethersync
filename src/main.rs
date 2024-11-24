@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Write},
     os::unix::net::UnixStream,
     thread,
 };
@@ -327,10 +327,14 @@ impl Iterator for EditorMessages {
 }
 
 fn listen_to_editor_messages() -> anyhow::Result<()> {
+
+    let socket_path = "/tmp/ethersync";
+    let mut stream = UnixStream::connect(socket_path)?;
+
     let fifo_path = "/tmp/ethersync-kak-fifo";
     let mut prev_content = "".to_string();
     for message in EditorMessages::new(fifo_path.to_string())? {
-        let relayed_message = match message? {
+        match message? {
             MessageFromEditor::BufferChanged {
                 file_path,
                 new_content,
@@ -341,28 +345,29 @@ fn listen_to_editor_messages() -> anyhow::Result<()> {
                     revision: 42,
                 };
                 prev_content = new_content;
-                relayed
+                println!("{relayed:?}");
             }
             MessageFromEditor::BufferCreated { file_path } => {
-                EditorProtocolMessageFromEditor::Open {
-                    uri: "file://".to_owned() + &file_path,
-                }
-            }
-            MessageFromEditor::CursorMoved { file_path, cursors } => {
-                EditorProtocolMessageFromEditor::Cursor {
-                    uri: "file://".to_owned() + &file_path,
-                    ranges: cursors,
-                }
-            }
-        };
-        println!(
-            "{}",
-            serde_json::to_string(&JSONRPCFromEditor::Request {
+                stream.write_all(serde_json::to_string(&JSONRPCFromEditor::Request {
                 jsonrpc: JSONRPCVersionTag,
                 id: 42,
-                payload: relayed_message
-            })?
-        );
+                payload: EditorProtocolMessageFromEditor::Open {
+                    uri: "file://".to_owned() + &file_path,
+                }})?.as_bytes())?;
+                stream.flush();
+            }
+            MessageFromEditor::CursorMoved { file_path, cursors } => {
+                stream.write_all(serde_json::to_string(&JSONRPCFromEditor::Request {
+                jsonrpc: JSONRPCVersionTag,
+                id: 42,
+
+                payload: EditorProtocolMessageFromEditor::Cursor {
+                    uri: "file://".to_owned() + &file_path,
+                    ranges: cursors,
+                }})?.as_bytes())?;
+                stream.flush();
+            }
+        };
     }
     Ok(())
 }
