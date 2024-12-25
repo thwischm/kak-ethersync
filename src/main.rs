@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::{
     fs::File,
-    io::{BufRead, BufReader, Write},
+    io::{BufRead, BufReader, Read, Write},
     os::unix::net::UnixStream,
     thread,
 };
@@ -78,7 +78,7 @@ enum JSONRPCFromEditor {
 type DocumentUri = String;
 type CursorId = String;
 
-#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord)]
 struct Position {
     line: usize,
     character: usize,
@@ -165,13 +165,58 @@ impl EditorTextDelta {
             .collect();
         Self(text_ops)
     }
+
+    fn sequential_ops(&self, document: &str) -> Vec<EditorTextOp> {
+        let mut old_position = Position {
+            line: 0,
+            character: 0,
+        };
+        let mut new_position = Position {
+            line: 0,
+            character: 0,
+        };
+        let mut grapheme_iter = document.graphemes(true);
+        let mut result = Vec::new();
+        for edit in self.0.iter() {
+            while old_position < edit.range.start {
+                let char = grapheme_iter.next();
+                if char == Some("\n") {
+                    old_position.line += 1;
+                    old_position.character = 0;
+                    new_position.line += 1;
+                    new_position.character = 0;
+                } else {
+                    old_position.character += 1;
+                    new_position.character += 1;
+                }
+            }
+
+            let start = new_position;
+
+            for char in edit.replacement.graphemes(true) {
+                if char == "\n" {
+                    new_position.line += 1;
+                    new_position.character = 0;
+                } else {
+                    new_position.character += 1;
+                }
+            }
+
+            let end = new_position;
+
+            result.push(EditorTextOp{range: Range{start, end}, replacement: edit.replacement.clone()});
+
+            old_position = edit.range.end;
+        }
+        result
+    }
 }
 
 fn position_from_kak_selection_desc(desc: &str) -> anyhow::Result<Position> {
     let (line, character) = desc.split_once(".").ok_or(anyhow!("invalid position"))?;
     Ok(Position {
-        line: line.parse()?,
-        character: character.parse()?,
+        line: line.parse::<usize>()? - 1,
+        character: character.parse::<usize>()? - 1,
     })
 }
 
@@ -318,7 +363,7 @@ impl Iterator for EditorMessages {
                     }
                     Some(read_cursor_moved_message(&mut self.fifo_lines))
                 }
-                _ => Some(Err(anyhow!("unknown message"))),
+                _ => Some(Err(anyhow!("unknown message: {message}"))),
             },
             Some(Err(e)) => Some(Err(e.into())),
             None => None,
@@ -326,68 +371,132 @@ impl Iterator for EditorMessages {
     }
 }
 
-fn listen_to_editor_messages() -> anyhow::Result<()> {
-
-    let socket_path = "/tmp/ethersync";
-    let mut stream = UnixStream::connect(socket_path)?;
-
+fn listen_to_editor_messages(socket_to_daemon: impl Write) -> anyhow::Result<()> {
+    let mut socket_to_daemon = std::io::LineWriter::new(socket_to_daemon);
     let fifo_path = "/tmp/ethersync-kak-fifo";
     let mut prev_content = "".to_string();
+    let mut next_id = 0;
     for message in EditorMessages::new(fifo_path.to_string())? {
         match message? {
             MessageFromEditor::BufferChanged {
                 file_path,
                 new_content,
             } => {
-                let relayed = EditorProtocolMessageFromEditor::Edit {
-                    delta: EditorTextDelta::from_diff(&prev_content, &new_content),
-                    uri: "file://".to_owned() + &file_path,
-                    revision: 42,
-                };
+                let delta = EditorTextDelta::from_diff(&prev_content, &new_content);
+                for edit in delta.sequential_ops(&prev_content) {
+                    let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+                        jsonrpc: JSONRPCVersionTag,
+                        id: next_id,
+                        payload: EditorProtocolMessageFromEditor::Edit {
+                            delta: EditorTextDelta(vec![edit]),
+                            uri: "file://".to_owned() + &file_path,
+                            revision: 0,
+                        },
+                    })?;
+                    writeln!(socket_to_daemon, "{}", message)?;
+                    next_id += 1;
+                }
                 prev_content = new_content;
-                println!("{relayed:?}");
             }
             MessageFromEditor::BufferCreated { file_path } => {
-                stream.write_all(serde_json::to_string(&JSONRPCFromEditor::Request {
-                jsonrpc: JSONRPCVersionTag,
-                id: 42,
-                payload: EditorProtocolMessageFromEditor::Open {
-                    uri: "file://".to_owned() + &file_path,
-                }})?.as_bytes())?;
-                stream.flush();
+                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+                    jsonrpc: JSONRPCVersionTag,
+                    id: next_id,
+                    payload: EditorProtocolMessageFromEditor::Open {
+                        uri: "file://".to_owned() + &file_path,
+                    },
+                })?;
+                println!("sending {}", message);
+                writeln!(socket_to_daemon, "{}", message)?;
+                next_id += 1;
             }
             MessageFromEditor::CursorMoved { file_path, cursors } => {
-                stream.write_all(serde_json::to_string(&JSONRPCFromEditor::Request {
-                jsonrpc: JSONRPCVersionTag,
-                id: 42,
+                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+                    jsonrpc: JSONRPCVersionTag,
+                    id: next_id,
 
-                payload: EditorProtocolMessageFromEditor::Cursor {
-                    uri: "file://".to_owned() + &file_path,
-                    ranges: cursors,
-                }})?.as_bytes())?;
-                stream.flush();
+                    payload: EditorProtocolMessageFromEditor::Cursor {
+                        uri: "file://".to_owned() + &file_path,
+                        ranges: cursors,
+                    },
+                })?;
+                println!("sending {message}");
+                writeln!(socket_to_daemon, "{}", message)?;
+                next_id += 1;
             }
         };
     }
     Ok(())
 }
 
-fn listen_to_daemon_messages() -> anyhow::Result<()> {
-    let socket_path = "/tmp/ethersync";
-    let stream = UnixStream::connect(socket_path)?;
+fn listen_to_daemon_messages(stream: impl Read) -> anyhow::Result<()> {
     let stream = BufReader::new(stream);
     for line in stream.lines() {
         let line = line.unwrap();
         let message: serde_json::Result<EditorProtocolMessageToEditor> =
             serde_json::from_str(&line);
-        println!("{:#?}", message)
+        match message {
+            Ok(EditorProtocolMessageToEditor::Edit {
+                uri,
+                revision,
+                delta,
+            }) => apply_delta(&delta),
+            Ok(EditorProtocolMessageToEditor::Cursor {
+                userid,
+                name,
+                uri,
+                ranges,
+            }) => {
+                println!("got cursor message for user {name:?}, ranges: {ranges:?}")
+            }
+            Err(_) => {
+                println!("got some line: {line}")
+            }
+        }
     }
     Ok(())
 }
 
+fn to_kak_range(r: &Range) -> String {
+    format!(
+        "{}.{},{}.{}",
+        r.start.line, r.start.character, r.end.line, r.end.character
+    )
+}
+
+fn escape_for_editor(s: &str) -> String {
+    s.to_string() // TODO
+}
+
+fn apply_delta(delta: &EditorTextDelta) {
+    let commands = delta
+        .0
+        .iter()
+        .flat_map(|op| {
+            [
+                format!("select {}", to_kak_range(&op.range)),
+                format!(
+                    "execute_keys \"{}{}<esc>\"",
+                    if op.range.start == op.range.end {
+                        "i"
+                    } else {
+                        "c"
+                    },
+                    escape_for_editor(&op.replacement)
+                ),
+            ]
+        })
+        .join("\n");
+    println!("{commands}");
+}
+
 fn main() -> anyhow::Result<()> {
-    let editor_thread = thread::spawn(listen_to_editor_messages);
-    let daemon_thread = thread::spawn(listen_to_daemon_messages);
+    let socket_path = "/tmp/ethersync";
+    let stream = UnixStream::connect(socket_path)?;
+    let stream_copy = stream.try_clone()?;
+
+    let editor_thread = thread::spawn(|| listen_to_editor_messages(stream));
+    let daemon_thread = thread::spawn(|| listen_to_daemon_messages(stream_copy));
     editor_thread.join().expect("couldn't join editor thread")?;
     daemon_thread.join().expect("couldn't join daemon thread")?;
     Ok(())
