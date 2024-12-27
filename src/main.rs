@@ -2,10 +2,12 @@ use anyhow::anyhow;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
+use std::sync::mpsc::Sender;
 use std::{
     fs::File,
     io::{BufRead, BufReader, Read, Write},
     os::unix::net::UnixStream,
+    sync::mpsc,
     thread,
 };
 use unicode_segmentation::UnicodeSegmentation;
@@ -382,88 +384,25 @@ impl Iterator for EditorMessages {
     }
 }
 
-fn listen_to_editor_messages(socket_to_daemon: impl Write) -> anyhow::Result<()> {
-    let mut socket_to_daemon = std::io::LineWriter::new(socket_to_daemon);
+fn listen_to_editor_messages(sender: Sender<Message>) -> anyhow::Result<()> {
     let fifo_path = "/tmp/ethersync-kak-fifo";
-    let mut prev_content = "".to_string();
-    let mut next_id = 0;
     for message in EditorMessages::new(fifo_path.to_string())? {
-        match message? {
-            MessageFromEditor::BufferChanged {
-                file_path,
-                new_content,
-            } => {
-                let delta = EditorTextDelta::from_diff(&prev_content, &new_content);
-                println!("delta: {delta:?}");
-                for edit in delta.sequential_ops(&prev_content) {
-                    let message = serde_json::to_string(&JSONRPCFromEditor::Request {
-                        jsonrpc: JSONRPCVersionTag,
-                        id: next_id,
-                        payload: EditorProtocolMessageFromEditor::Edit {
-                            delta: EditorTextDelta(vec![edit]),
-                            uri: "file://".to_owned() + &file_path,
-                            revision: 0,
-                        },
-                    })?;
-                    println!("sending {}", message);
-                    writeln!(socket_to_daemon, "{}", message)?;
-                    next_id += 1;
-                }
-                prev_content = new_content;
-            }
-            MessageFromEditor::BufferCreated { file_path } => {
-                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
-                    jsonrpc: JSONRPCVersionTag,
-                    id: next_id,
-                    payload: EditorProtocolMessageFromEditor::Open {
-                        uri: "file://".to_owned() + &file_path,
-                    },
-                })?;
-                println!("sending {}", message);
-                writeln!(socket_to_daemon, "{}", message)?;
-                next_id += 1;
-            }
-            MessageFromEditor::CursorMoved { file_path, cursors } => {
-                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
-                    jsonrpc: JSONRPCVersionTag,
-                    id: next_id,
-
-                    payload: EditorProtocolMessageFromEditor::Cursor {
-                        uri: "file://".to_owned() + &file_path,
-                        ranges: cursors,
-                    },
-                })?;
-                println!("sending {message}");
-                writeln!(socket_to_daemon, "{}", message)?;
-                next_id += 1;
-            }
-        };
+        sender.send(Message::FromEditor(message?))?;
     }
     Ok(())
 }
 
-fn listen_to_daemon_messages(stream: impl Read) -> anyhow::Result<()> {
+fn listen_to_daemon_messages(stream: impl Read, sender: Sender<Message>) -> anyhow::Result<()> {
     let stream = BufReader::new(stream);
     for line in stream.lines() {
         let line = line.unwrap();
-        let message: serde_json::Result<EditorProtocolMessageToEditor> =
-            serde_json::from_str(&line);
+        let message = serde_json::from_str(&line);
         match message {
-            Ok(EditorProtocolMessageToEditor::Edit {
-                uri,
-                revision,
-                delta,
-            }) => apply_delta(&delta),
-            Ok(EditorProtocolMessageToEditor::Cursor {
-                userid,
-                name,
-                uri,
-                ranges,
-            }) => {
-                println!("got cursor message for user {name:?}, ranges: {ranges:?}")
+            Ok(message) => {
+                sender.send(Message::FromDaemon(message))?;
             }
             Err(_) => {
-                println!("got some line: {line}")
+                println!("got some line: {line}");
             }
         }
     }
@@ -503,14 +442,90 @@ fn apply_delta(delta: &EditorTextDelta) {
     // println!("{commands}");
 }
 
+enum Message {
+    FromEditor(MessageFromEditor),
+    FromDaemon(EditorProtocolMessageToEditor),
+}
+
 fn main() -> anyhow::Result<()> {
     let socket_path = "/tmp/ethersync";
     let stream = UnixStream::connect(socket_path)?;
-    let stream_copy = stream.try_clone()?;
+    let stream_copy_2 = stream.try_clone()?;
 
-    let editor_thread = thread::spawn(|| listen_to_editor_messages(stream));
-    let daemon_thread = thread::spawn(|| listen_to_daemon_messages(stream_copy));
-    editor_thread.join().expect("couldn't join editor thread")?;
-    daemon_thread.join().expect("couldn't join daemon thread")?;
-    Ok(())
+    let (sender, reciever) = mpsc::channel();
+    let sender_copy = sender.clone();
+
+    thread::spawn(|| listen_to_editor_messages(sender));
+    thread::spawn(|| listen_to_daemon_messages(stream_copy_2, sender_copy));
+
+    let mut socket_to_daemon = std::io::LineWriter::new(stream);
+    let mut prev_content = "".to_string();
+    let mut next_id = 0;
+
+    loop {
+        match reciever.recv()? {
+            Message::FromEditor(MessageFromEditor::BufferChanged {
+                file_path,
+                new_content,
+            }) => {
+                let delta = EditorTextDelta::from_diff(&prev_content, &new_content);
+                println!("delta: {delta:?}");
+                for edit in delta.sequential_ops(&prev_content) {
+                    let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+                        jsonrpc: JSONRPCVersionTag,
+                        id: next_id,
+                        payload: EditorProtocolMessageFromEditor::Edit {
+                            delta: EditorTextDelta(vec![edit]),
+                            uri: "file://".to_owned() + &file_path,
+                            revision: 0,
+                        },
+                    })?;
+                    println!("sending {}", message);
+                    writeln!(socket_to_daemon, "{}", message)?;
+                    next_id += 1;
+                }
+                prev_content = new_content;
+            }
+            Message::FromEditor(MessageFromEditor::BufferCreated { file_path }) => {
+                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+                    jsonrpc: JSONRPCVersionTag,
+                    id: next_id,
+                    payload: EditorProtocolMessageFromEditor::Open {
+                        uri: "file://".to_owned() + &file_path,
+                    },
+                })?;
+                println!("sending {}", message);
+                writeln!(socket_to_daemon, "{}", message)?;
+                next_id += 1;
+            }
+            Message::FromEditor(MessageFromEditor::CursorMoved { file_path, cursors }) => {
+                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+                    jsonrpc: JSONRPCVersionTag,
+                    id: next_id,
+
+                    payload: EditorProtocolMessageFromEditor::Cursor {
+                        uri: "file://".to_owned() + &file_path,
+                        ranges: cursors,
+                    },
+                })?;
+                println!("sending {message}");
+                writeln!(socket_to_daemon, "{}", message)?;
+                next_id += 1;
+            }
+
+            Message::FromDaemon(EditorProtocolMessageToEditor::Edit {
+                uri,
+                revision,
+                delta,
+            }) => apply_delta(&delta),
+            Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
+                userid,
+                name,
+                uri,
+                ranges,
+            }) => {
+                println!("got cursor message for user {name:?}, ranges: {ranges:?}")
+            }
+        }
+    }
 }
