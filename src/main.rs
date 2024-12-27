@@ -178,6 +178,8 @@ impl EditorTextDelta {
         let mut grapheme_iter = document.graphemes(true);
         let mut result = Vec::new();
         for edit in self.0.iter() {
+            // advance both old and new pointers until old pointer is at the
+            // beginning of this edit
             while old_position < edit.range.start {
                 let char = grapheme_iter.next();
                 if char == Some("\n") {
@@ -191,8 +193,20 @@ impl EditorTextDelta {
                 }
             }
 
-            let start = new_position;
+            let line_diff = old_position.line - new_position.line;
+            let char_diff = old_position.character - new_position.character;
+            result.push(EditorTextOp {
+                range: Range {
+                    start: new_position,
+                    end: Position {
+                        line: edit.range.end.line + line_diff,
+                        character: edit.range.end.character + char_diff,
+                    },
+                },
+                replacement: edit.replacement.clone(),
+            });
 
+            // advance only new pointer through the replacement
             for char in edit.replacement.graphemes(true) {
                 if char == "\n" {
                     new_position.line += 1;
@@ -202,10 +216,7 @@ impl EditorTextDelta {
                 }
             }
 
-            let end = new_position;
-
-            result.push(EditorTextOp{range: Range{start, end}, replacement: edit.replacement.clone()});
-
+            // advance old pointer to the end of the range in the original doc
             old_position = edit.range.end;
         }
         result
@@ -383,6 +394,7 @@ fn listen_to_editor_messages(socket_to_daemon: impl Write) -> anyhow::Result<()>
                 new_content,
             } => {
                 let delta = EditorTextDelta::from_diff(&prev_content, &new_content);
+                println!("delta: {delta:?}");
                 for edit in delta.sequential_ops(&prev_content) {
                     let message = serde_json::to_string(&JSONRPCFromEditor::Request {
                         jsonrpc: JSONRPCVersionTag,
@@ -393,6 +405,7 @@ fn listen_to_editor_messages(socket_to_daemon: impl Write) -> anyhow::Result<()>
                             revision: 0,
                         },
                     })?;
+                    println!("sending {}", message);
                     writeln!(socket_to_daemon, "{}", message)?;
                     next_id += 1;
                 }
@@ -487,7 +500,7 @@ fn apply_delta(delta: &EditorTextDelta) {
             ]
         })
         .join("\n");
-    println!("{commands}");
+    // println!("{commands}");
 }
 
 fn main() -> anyhow::Result<()> {
