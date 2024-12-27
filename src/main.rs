@@ -195,14 +195,14 @@ impl EditorTextDelta {
                 }
             }
 
-            let line_diff = old_position.line - new_position.line;
-            let char_diff = old_position.character - new_position.character;
+            let line_diff = new_position.line as i32 - old_position.line as i32;
+            let char_diff = new_position.character as i32 - old_position.character as i32;
             result.push(EditorTextOp {
                 range: Range {
                     start: new_position,
                     end: Position {
-                        line: edit.range.end.line + line_diff,
-                        character: edit.range.end.character + char_diff,
+                        line: (edit.range.end.line as i32 + line_diff) as usize,
+                        character: (edit.range.end.character as i32 + char_diff) as usize,
                     },
                 },
                 replacement: edit.replacement.clone(),
