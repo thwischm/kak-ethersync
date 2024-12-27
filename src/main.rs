@@ -168,7 +168,11 @@ impl EditorTextDelta {
         Self(text_ops)
     }
 
-    fn sequential_ops(&self, document: &str) -> Vec<EditorTextOp> {
+    fn sequential_ops(self, document: &str) -> Vec<EditorTextOp> {
+        if self.0.len() == 1 {
+            return self.0;
+        }
+        
         let mut old_position = Position {
             line: 0,
             character: 0,
