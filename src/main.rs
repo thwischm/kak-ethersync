@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use itertools::Itertools;
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::sync::mpsc::Sender;
@@ -172,7 +173,7 @@ impl EditorTextDelta {
         if self.0.len() == 1 {
             return self.0;
         }
-        
+
         let mut old_position = Position {
             line: 0,
             character: 0,
@@ -406,7 +407,7 @@ fn listen_to_daemon_messages(stream: impl Read, sender: Sender<Message>) -> anyh
                 sender.send(Message::FromDaemon(message))?;
             }
             Err(_) => {
-                println!("got some line: {line}");
+                info!("got some line: {line}");
             }
         }
     }
@@ -443,7 +444,7 @@ fn apply_delta(delta: &EditorTextDelta) {
             ]
         })
         .join("\n");
-    // println!("{commands}");
+    info!("would execute commands: {commands}");
 }
 
 enum Message {
@@ -451,7 +452,18 @@ enum Message {
     FromDaemon(EditorProtocolMessageToEditor),
 }
 
+fn send_to_daemon(
+    socket_to_daemon: &mut std::io::LineWriter<UnixStream>,
+    message: &str,
+) -> Result<(), anyhow::Error> {
+    debug!("sending {}", message);
+    writeln!(socket_to_daemon, "{}", message)?;
+    Ok(())
+}
+
 fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     let socket_path = "/tmp/ethersync";
     let stream = UnixStream::connect(socket_path)?;
     let stream_copy_2 = stream.try_clone()?;
@@ -473,7 +485,7 @@ fn main() -> anyhow::Result<()> {
                 new_content,
             }) => {
                 let delta = EditorTextDelta::from_diff(&prev_content, &new_content);
-                println!("delta: {delta:?}");
+                debug!("delta: {delta:?}");
                 for edit in delta.sequential_ops(&prev_content) {
                     let message = serde_json::to_string(&JSONRPCFromEditor::Request {
                         jsonrpc: JSONRPCVersionTag,
@@ -484,8 +496,7 @@ fn main() -> anyhow::Result<()> {
                             revision: 0,
                         },
                     })?;
-                    println!("sending {}", message);
-                    writeln!(socket_to_daemon, "{}", message)?;
+                    send_to_daemon(&mut socket_to_daemon, &message)?;
                     next_id += 1;
                 }
                 prev_content = new_content;
@@ -498,8 +509,7 @@ fn main() -> anyhow::Result<()> {
                         uri: "file://".to_owned() + &file_path,
                     },
                 })?;
-                println!("sending {}", message);
-                writeln!(socket_to_daemon, "{}", message)?;
+                send_to_daemon(&mut socket_to_daemon, &message)?;
                 next_id += 1;
             }
             Message::FromEditor(MessageFromEditor::CursorMoved { file_path, cursors }) => {
@@ -512,8 +522,7 @@ fn main() -> anyhow::Result<()> {
                         ranges: cursors,
                     },
                 })?;
-                println!("sending {message}");
-                writeln!(socket_to_daemon, "{}", message)?;
+                send_to_daemon(&mut socket_to_daemon, &message)?;
                 next_id += 1;
             }
 
@@ -528,8 +537,9 @@ fn main() -> anyhow::Result<()> {
                 uri,
                 ranges,
             }) => {
-                println!("got cursor message for user {name:?}, ranges: {ranges:?}")
+                info!("got cursor message for user {name:?}, ranges: {ranges:?}")
             }
         }
     }
 }
+
