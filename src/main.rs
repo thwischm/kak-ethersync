@@ -3,6 +3,7 @@ use itertools::Itertools;
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
+use std::io::LineWriter;
 use std::sync::mpsc::Sender;
 use std::{
     fs::File,
@@ -425,9 +426,9 @@ fn escape_for_editor(s: &str) -> String {
     s.to_string() // TODO
 }
 
-fn apply_delta(delta: &EditorTextDelta) {
+fn apply_delta(doc: &str, delta: EditorTextDelta) {
     let commands = delta
-        .0
+        .sequential_ops(doc)
         .iter()
         .flat_map(|op| {
             [
@@ -452,13 +453,30 @@ enum Message {
     FromDaemon(EditorProtocolMessageToEditor),
 }
 
-fn send_to_daemon(
-    socket_to_daemon: &mut std::io::LineWriter<UnixStream>,
-    message: &str,
-) -> Result<(), anyhow::Error> {
-    debug!("sending {}", message);
-    writeln!(socket_to_daemon, "{}", message)?;
-    Ok(())
+struct DaemonConnection {
+    next_id: usize,
+    writer: LineWriter<UnixStream>,
+}
+
+impl DaemonConnection {
+    fn new(socket: UnixStream) -> Self {
+        Self {
+            writer: LineWriter::new(socket),
+            next_id: 0,
+        }
+    }
+
+    fn send(&mut self, payload: EditorProtocolMessageFromEditor) -> anyhow::Result<()> {
+        let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+            jsonrpc: JSONRPCVersionTag,
+            id: self.next_id,
+            payload,
+        })?;
+        debug!("sending {}", message);
+        writeln!(self.writer, "{}", message)?;
+        self.next_id += 1;
+        Ok(())
+    }
 }
 
 fn main() -> anyhow::Result<()> {
@@ -474,9 +492,8 @@ fn main() -> anyhow::Result<()> {
     thread::spawn(|| listen_to_editor_messages(sender));
     thread::spawn(|| listen_to_daemon_messages(stream_copy_2, sender_copy));
 
-    let mut socket_to_daemon = std::io::LineWriter::new(stream);
+    let mut daemon_connection = DaemonConnection::new(stream);
     let mut prev_content = "".to_string();
-    let mut next_id = 0;
 
     loop {
         match reciever.recv()? {
@@ -487,50 +504,31 @@ fn main() -> anyhow::Result<()> {
                 let delta = EditorTextDelta::from_diff(&prev_content, &new_content);
                 debug!("delta: {delta:?}");
                 for edit in delta.sequential_ops(&prev_content) {
-                    let message = serde_json::to_string(&JSONRPCFromEditor::Request {
-                        jsonrpc: JSONRPCVersionTag,
-                        id: next_id,
-                        payload: EditorProtocolMessageFromEditor::Edit {
-                            delta: EditorTextDelta(vec![edit]),
-                            uri: "file://".to_owned() + &file_path,
-                            revision: 0,
-                        },
+                    daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
+                        delta: EditorTextDelta(vec![edit]),
+                        uri: "file://".to_owned() + &file_path,
+                        revision: 0, // TODO
                     })?;
-                    send_to_daemon(&mut socket_to_daemon, &message)?;
-                    next_id += 1;
                 }
                 prev_content = new_content;
             }
             Message::FromEditor(MessageFromEditor::BufferCreated { file_path }) => {
-                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
-                    jsonrpc: JSONRPCVersionTag,
-                    id: next_id,
-                    payload: EditorProtocolMessageFromEditor::Open {
-                        uri: "file://".to_owned() + &file_path,
-                    },
+                daemon_connection.send(EditorProtocolMessageFromEditor::Open {
+                    uri: "file://".to_owned() + &file_path,
                 })?;
-                send_to_daemon(&mut socket_to_daemon, &message)?;
-                next_id += 1;
             }
             Message::FromEditor(MessageFromEditor::CursorMoved { file_path, cursors }) => {
-                let message = serde_json::to_string(&JSONRPCFromEditor::Request {
-                    jsonrpc: JSONRPCVersionTag,
-                    id: next_id,
-
-                    payload: EditorProtocolMessageFromEditor::Cursor {
-                        uri: "file://".to_owned() + &file_path,
-                        ranges: cursors,
-                    },
+                daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
+                    uri: "file://".to_owned() + &file_path,
+                    ranges: cursors,
                 })?;
-                send_to_daemon(&mut socket_to_daemon, &message)?;
-                next_id += 1;
             }
 
             Message::FromDaemon(EditorProtocolMessageToEditor::Edit {
                 uri,
                 revision,
                 delta,
-            }) => apply_delta(&delta),
+            }) => apply_delta(&prev_content, delta),
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
                 userid,
                 name,
@@ -542,4 +540,3 @@ fn main() -> anyhow::Result<()> {
         }
     }
 }
-
