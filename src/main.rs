@@ -408,7 +408,16 @@ fn listen_to_daemon_messages(stream: impl Read, sender: Sender<Message>) -> anyh
                 sender.send(Message::FromDaemon(message))?;
             }
             Err(_) => {
-                info!("got some line: {line}");
+                let message: Result<JSONRPCResponse, serde_json::Error> = serde_json::from_str(&line);
+                match message {
+                    Ok(
+                        JSONRPCResponse::RequestSuccess { id, result }
+                    ) => debug!("request {id}: {result}"),
+                    Ok(
+                        JSONRPCResponse::RequestError { id, error }
+                    ) => error!("daemon returned error for message {id:?}: {error:?}"),
+                    Err(e) => error!("couldn't parse response from daemon: {e}"),
+                }
             }
         }
     }
