@@ -494,6 +494,7 @@ fn main() -> anyhow::Result<()> {
 
     let mut daemon_connection = DaemonConnection::new(stream);
     let mut prev_content = "".to_string();
+    let mut last_seen_revision = 0;
 
     loop {
         match reciever.recv()? {
@@ -507,7 +508,7 @@ fn main() -> anyhow::Result<()> {
                     daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
                         delta: EditorTextDelta(vec![edit]),
                         uri: "file://".to_owned() + &file_path,
-                        revision: 0, // TODO
+                        revision: last_seen_revision,
                     })?;
                 }
                 prev_content = new_content;
@@ -528,7 +529,10 @@ fn main() -> anyhow::Result<()> {
                 uri,
                 revision,
                 delta,
-            }) => apply_delta(&prev_content, delta),
+            }) => {
+                last_seen_revision = revision;
+                apply_delta(&prev_content, delta);
+            },
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
                 userid,
                 name,
