@@ -33,6 +33,8 @@ define-command -hidden es-open-file %{
     es-send "BufferCreated"
     es-send %val{bufname}
     es-send %val{buffile}
+    es-send %val{buf_line_count}
+    write -force /tmp/ethersync-kak-fifo
 }
 
 define-command -hidden es-cursor-moved %{

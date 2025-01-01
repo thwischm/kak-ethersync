@@ -318,6 +318,7 @@ enum MessageFromEditor {
     BufferCreated {
         buffer_name: String,
         file_path: String,
+        initial_content: String,
     },
     CursorMoved {
         file_path: String,
@@ -376,9 +377,19 @@ impl Iterator for EditorMessages {
                         let file_path = fifo_lines
                             .next()
                             .ok_or(anyhow!("invalid CursorMoved message"))??;
+                        let num_lines: usize = fifo_lines
+                            .next()
+                            .ok_or(anyhow!("invalid BufferChanged message"))??
+                            .parse()?;
+                        let content: Vec<String> = fifo_lines.take(num_lines).try_collect()?;
+                        if content.len() < num_lines {
+                            return Err(anyhow!("invalid BufferChanged message"));
+                        }
+                        let content = content.join("\n");
                         Ok(MessageFromEditor::BufferCreated {
                             buffer_name,
                             file_path,
+                            initial_content: content,
                         })
                     }
                     Some(read_buffer_created_message(&mut self.fifo_lines))
@@ -632,7 +643,9 @@ fn main() -> anyhow::Result<()> {
             Message::FromEditor(MessageFromEditor::BufferCreated {
                 file_path,
                 buffer_name,
+                initial_content,
             }) => {
+                prev_content = initial_content;
                 current_buffer_name = buffer_name;
                 daemon_connection.send(EditorProtocolMessageFromEditor::Open {
                     uri: "file://".to_owned() + &file_path,
