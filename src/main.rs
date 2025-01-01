@@ -558,7 +558,8 @@ fn main() -> anyhow::Result<()> {
 
     let mut daemon_connection = DaemonConnection::new(stream);
     let mut prev_content = "".to_string();
-    let mut last_seen_revision = 0;
+    let mut editor_revision = 0;
+    let mut daemon_revision = 0;
 
     let mut kak_session = "".to_string();
 
@@ -576,8 +577,9 @@ fn main() -> anyhow::Result<()> {
                     daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
                         delta: EditorTextDelta(vec![edit]),
                         uri: "file://".to_owned() + &file_path,
-                        revision: last_seen_revision,
+                        revision: daemon_revision,
                     })?;
+                    editor_revision += 1;
                 }
                 prev_content = new_content;
             }
@@ -605,8 +607,11 @@ fn main() -> anyhow::Result<()> {
                 revision,
                 delta,
             }) => {
-                last_seen_revision = revision;
+                if revision != editor_revision {
+                    continue;
+                }
                 apply_delta(&prev_content, &kak_session, &current_buffer_name, delta)?;
+                daemon_revision += 1;
             }
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
                 userid,
