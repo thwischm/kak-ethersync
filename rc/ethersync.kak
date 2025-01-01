@@ -31,6 +31,7 @@ define-command -hidden es-did-change %{
 
 define-command -hidden es-open-file %{
     es-send "BufferCreated"
+    es-send %val{bufname}
     es-send %val{buffile}
 }
 
@@ -41,6 +42,9 @@ define-command -hidden es-cursor-moved %{
 }
 
 define-command es-enable -docstring "Enable Ethersync" %{
+    es-send "SessionStarted"
+    es-send %val{session}
+
 	hook -group es %arg{1} InsertIdle .* es-did-change
 	hook -group es %arg{1} NormalIdle .* es-did-change
 

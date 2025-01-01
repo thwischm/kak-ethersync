@@ -1,9 +1,10 @@
 use anyhow::anyhow;
 use itertools::Itertools;
-use log::{debug, error, info};
+use log::{debug, error, info, trace};
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::io::LineWriter;
+use std::process::{Command, Stdio};
 use std::sync::mpsc::Sender;
 use std::{
     fs::File,
@@ -307,11 +308,15 @@ impl Iterator for FifoLines {
 
 #[derive(Debug)]
 enum MessageFromEditor {
+    SessionStarted {
+        session_name: String,
+    },
     BufferChanged {
         file_path: String,
         new_content: String,
     },
     BufferCreated {
+        buffer_name: String,
         file_path: String,
     },
     CursorMoved {
@@ -361,8 +366,27 @@ impl Iterator for EditorMessages {
                     }
                     Some(read_buffer_changed_message(&mut self.fifo_lines))
                 }
-                "BufferCreated" => match self.fifo_lines.next() {
-                    Some(Ok(file_path)) => Some(Ok(MessageFromEditor::BufferCreated { file_path })),
+                "BufferCreated" => {
+                    fn read_buffer_created_message(
+                        fifo_lines: &mut FifoLines,
+                    ) -> anyhow::Result<MessageFromEditor> {
+                        let buffer_name = fifo_lines
+                            .next()
+                            .ok_or(anyhow!("invalid CursorMoved message"))??;
+                        let file_path = fifo_lines
+                            .next()
+                            .ok_or(anyhow!("invalid CursorMoved message"))??;
+                        Ok(MessageFromEditor::BufferCreated {
+                            buffer_name,
+                            file_path,
+                        })
+                    }
+                    Some(read_buffer_created_message(&mut self.fifo_lines))
+                }
+                "SessionStarted" => match self.fifo_lines.next() {
+                    Some(Ok(session_name)) => {
+                        Some(Ok(MessageFromEditor::SessionStarted { session_name }))
+                    }
                     _ => Some(Err(anyhow!("invalid BufferCreated message"))),
                 },
                 "CursorMoved" => {
@@ -408,14 +432,15 @@ fn listen_to_daemon_messages(stream: impl Read, sender: Sender<Message>) -> anyh
                 sender.send(Message::FromDaemon(message))?;
             }
             Err(_) => {
-                let message: Result<JSONRPCResponse, serde_json::Error> = serde_json::from_str(&line);
+                let message: Result<JSONRPCResponse, serde_json::Error> =
+                    serde_json::from_str(&line);
                 match message {
-                    Ok(
-                        JSONRPCResponse::RequestSuccess { id, result }
-                    ) => debug!("request {id}: {result}"),
-                    Ok(
-                        JSONRPCResponse::RequestError { id, error }
-                    ) => error!("daemon returned error for message {id:?}: {error:?}"),
+                    Ok(JSONRPCResponse::RequestSuccess { id, result }) => {
+                        trace!("request {id}: {result}")
+                    }
+                    Ok(JSONRPCResponse::RequestError { id, error }) => {
+                        error!("daemon returned error for message {id:?}: {error:?}")
+                    }
                     Err(e) => error!("couldn't parse response from daemon: {e}"),
                 }
             }
@@ -431,11 +456,20 @@ fn to_kak_range(r: &Range) -> String {
     )
 }
 
-fn escape_for_editor(s: &str) -> String {
+fn escape_keys(s: &str) -> String {
     s.to_string() // TODO
 }
 
-fn apply_delta(doc: &str, delta: EditorTextDelta) {
+fn escape_single_quotes(s: &str) -> String {
+    s.to_string() // TODO
+}
+
+fn apply_delta(
+    doc: &str,
+    session_name: &str,
+    buffer_name: &str,
+    delta: EditorTextDelta,
+) -> anyhow::Result<()> {
     let commands = delta
         .sequential_ops(doc)
         .iter()
@@ -443,18 +477,25 @@ fn apply_delta(doc: &str, delta: EditorTextDelta) {
             [
                 format!("select {}", to_kak_range(&op.range)),
                 format!(
-                    "execute_keys \"{}{}<esc>\"",
+                    "execute-keys \'{}{}<esc>\'",
                     if op.range.start == op.range.end {
                         "i"
                     } else {
                         "c"
                     },
-                    escape_for_editor(&op.replacement)
+                    &op.replacement
                 ),
             ]
         })
-        .join("\n");
-    info!("would execute commands: {commands}");
+        .join("; ");
+    let eval_command = format!(
+        "evaluate-commands -buffer '{}' \"{}\"\n",
+        escape_single_quotes(buffer_name),
+        escape_single_quotes(&escape_keys(&commands))
+    );
+    debug!("executing command: {eval_command}");
+    send_commands_to_kakoune(session_name, &eval_command)?;
+    Ok(())
 }
 
 enum Message {
@@ -488,6 +529,20 @@ impl DaemonConnection {
     }
 }
 
+fn send_commands_to_kakoune(session: &str, commands: &str) -> anyhow::Result<()> {
+    let mut child = Command::new("kak")
+        .args(["-p", session])
+        .stdin(Stdio::piped())
+        .spawn()?;
+    let stdin = child
+        .stdin
+        .as_mut()
+        .ok_or(anyhow!("couldn't open child stdin"))?;
+    stdin.write_all(commands.as_bytes())?;
+    child.wait()?;
+    Ok(())
+}
+
 fn main() -> anyhow::Result<()> {
     env_logger::init();
 
@@ -504,6 +559,10 @@ fn main() -> anyhow::Result<()> {
     let mut daemon_connection = DaemonConnection::new(stream);
     let mut prev_content = "".to_string();
     let mut last_seen_revision = 0;
+
+    let mut kak_session = "".to_string();
+
+    let mut current_buffer_name = "".to_string();
 
     loop {
         match reciever.recv()? {
@@ -522,10 +581,17 @@ fn main() -> anyhow::Result<()> {
                 }
                 prev_content = new_content;
             }
-            Message::FromEditor(MessageFromEditor::BufferCreated { file_path }) => {
+            Message::FromEditor(MessageFromEditor::BufferCreated {
+                file_path,
+                buffer_name,
+            }) => {
+                current_buffer_name = buffer_name;
                 daemon_connection.send(EditorProtocolMessageFromEditor::Open {
                     uri: "file://".to_owned() + &file_path,
                 })?;
+            }
+            Message::FromEditor(MessageFromEditor::SessionStarted { session_name }) => {
+                kak_session = session_name;
             }
             Message::FromEditor(MessageFromEditor::CursorMoved { file_path, cursors }) => {
                 daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
@@ -540,8 +606,8 @@ fn main() -> anyhow::Result<()> {
                 delta,
             }) => {
                 last_seen_revision = revision;
-                apply_delta(&prev_content, delta);
-            },
+                apply_delta(&prev_content, &kak_session, &current_buffer_name, delta)?;
+            }
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
                 userid,
                 name,
