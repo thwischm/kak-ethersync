@@ -455,7 +455,7 @@ fn to_kak_range(r: &Range) -> String {
         r.start.line + 1,
         r.start.character + 1,
         r.end.line + 1,
-        r.end.character + 1
+        r.end.character + 1,
     )
 }
 
@@ -467,16 +467,22 @@ fn escape_single_quotes(s: &str) -> String {
     s.to_string() // TODO
 }
 
-fn apply_delta(
+fn apply_delta_to_buffer(
     doc: &str,
     session_name: &str,
     buffer_name: &str,
     delta: EditorTextDelta,
 ) -> anyhow::Result<()> {
+    debug!("applying delta: {delta:?}");
     let commands = delta
         .sequential_ops(doc)
         .iter()
         .flat_map(|op| {
+            debug!(
+                "replacement: {:?}, bytes: {:x?}",
+                op.replacement,
+                op.replacement.as_bytes()
+            );
             [
                 format!("select {}", to_kak_range(&op.range)),
                 format!(
@@ -484,7 +490,7 @@ fn apply_delta(
                     if op.range.start == op.range.end {
                         "i"
                     } else {
-                        "c"
+                        "<s-h>c"
                     },
                     &op.replacement
                 ),
@@ -544,6 +550,43 @@ fn send_commands_to_kakoune(session: &str, commands: &str) -> anyhow::Result<()>
     stdin.write_all(commands.as_bytes())?;
     child.wait()?;
     Ok(())
+}
+
+fn apply_delta_to_string(prev_content: &str, delta: &EditorTextDelta) -> String {
+    let mut new_content = String::new();
+    let mut grapheme_iter = prev_content.graphemes(true);
+    let mut old_position = Position {
+        line: 0,
+        character: 0,
+    };
+    for edit in &delta.0 {
+        while old_position < edit.range.start {
+            let char = grapheme_iter.next().expect("edit out of range");
+            new_content += char;
+            if char == "\n" {
+                old_position.line += 1;
+                old_position.character = 0;
+            } else {
+                old_position.character += 1;
+            }
+        }
+
+        new_content += &edit.replacement;
+
+        while old_position < edit.range.end {
+            let char = grapheme_iter.next();
+            if char == Some("\n") {
+                old_position.line += 1;
+                old_position.character = 0;
+            } else {
+                old_position.character += 1;
+            }
+        }
+    }
+
+    new_content.extend(grapheme_iter);
+
+    new_content
 }
 
 fn main() -> anyhow::Result<()> {
@@ -613,7 +656,8 @@ fn main() -> anyhow::Result<()> {
                 if revision != editor_revision {
                     continue;
                 }
-                apply_delta(&prev_content, &kak_session, &current_buffer_name, delta)?;
+                prev_content = apply_delta_to_string(&prev_content, &delta);
+                apply_delta_to_buffer(&prev_content, &kak_session, &current_buffer_name, delta)?;
                 daemon_revision += 1;
             }
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
