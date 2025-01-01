@@ -452,7 +452,10 @@ fn listen_to_daemon_messages(stream: impl Read, sender: Sender<Message>) -> anyh
 fn to_kak_range(r: &Range) -> String {
     format!(
         "{}.{},{}.{}",
-        r.start.line, r.start.character, r.end.line, r.end.character
+        r.start.line + 1,
+        r.start.character + 1,
+        r.end.line + 1,
+        r.end.character + 1
     )
 }
 
