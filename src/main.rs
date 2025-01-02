@@ -342,6 +342,21 @@ impl Iterator for EditorMessages {
     type Item = anyhow::Result<MessageFromEditor>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        fn read_length_encoded_file_contents(
+            fifo_lines: &mut FifoLines,
+        ) -> Result<String, anyhow::Error> {
+            let num_lines: usize = fifo_lines
+                .next()
+                .ok_or(anyhow!("invalid file contents in message"))??
+                .parse()?;
+            let content: Vec<String> = fifo_lines.take(num_lines).try_collect()?;
+            if content.len() < num_lines {
+                return Err(anyhow!("invalid file contents in message"));
+            }
+            let content = content.join("\n") + "\n";
+            Ok(content)
+        }
+
         match self.fifo_lines.next() {
             Some(Ok(message)) => match message.as_str() {
                 "BufferChanged" => {
@@ -351,15 +366,7 @@ impl Iterator for EditorMessages {
                         let file_path = fifo_lines
                             .next()
                             .ok_or(anyhow!("invalid BufferChanged message"))??;
-                        let num_lines: usize = fifo_lines
-                            .next()
-                            .ok_or(anyhow!("invalid BufferChanged message"))??
-                            .parse()?;
-                        let content: Vec<String> = fifo_lines.take(num_lines).try_collect()?;
-                        if content.len() < num_lines {
-                            return Err(anyhow!("invalid BufferChanged message"));
-                        }
-                        let content = content.join("\n");
+                        let content = read_length_encoded_file_contents(fifo_lines)?;
                         Ok(MessageFromEditor::BufferChanged {
                             new_content: content,
                             file_path,
@@ -377,15 +384,7 @@ impl Iterator for EditorMessages {
                         let file_path = fifo_lines
                             .next()
                             .ok_or(anyhow!("invalid CursorMoved message"))??;
-                        let num_lines: usize = fifo_lines
-                            .next()
-                            .ok_or(anyhow!("invalid BufferChanged message"))??
-                            .parse()?;
-                        let content: Vec<String> = fifo_lines.take(num_lines).try_collect()?;
-                        if content.len() < num_lines {
-                            return Err(anyhow!("invalid BufferChanged message"));
-                        }
-                        let content = content.join("\n");
+                        let content = read_length_encoded_file_contents(fifo_lines)?;
                         Ok(MessageFromEditor::BufferCreated {
                             buffer_name,
                             file_path,
@@ -478,40 +477,84 @@ fn escape_single_quotes(s: &str) -> String {
     s.to_string() // TODO
 }
 
+fn first_invalid_position(doc: &str) -> Position {
+    debug!("first_invalid_position called with doc: {doc:?}");
+    let mut result = Position {
+        line: 0,
+        character: 0,
+    };
+    for char in doc.graphemes(true) {
+        if char == "\n" {
+            result.line += 1;
+            result.character = 0;
+        } else {
+            result.character += 1;
+        }
+    }
+    result
+}
+
+fn maybe_strip_trailing_newline(s: &str) -> &str {
+    match s.strip_suffix("\n") {
+        Some(prefix) => prefix,
+        None => s,
+    }
+}
+
 fn apply_delta_to_buffer(
     doc: &str,
     session_name: &str,
     buffer_name: &str,
-    delta: EditorTextDelta,
+    delta: &EditorTextDelta,
 ) -> anyhow::Result<()> {
     debug!("applying delta: {delta:?}");
-    let commands = delta
-        .sequential_ops(doc)
-        .iter()
-        .flat_map(|op| {
-            debug!(
-                "replacement: {:?}, bytes: {:x?}",
-                op.replacement,
-                op.replacement.as_bytes()
+    let mut doc_end = first_invalid_position(doc);
+    debug!("doc_end: {doc_end:?}");
+
+    let mut commands = String::new();
+    for op in delta.clone().sequential_ops(doc) {
+        debug!(
+            "replacement: {:?}, bytes: {:x?}",
+            op.replacement,
+            op.replacement.as_bytes()
+        );
+        if doc_end.character == 0 && op.range.start >= doc_end && op.range.end >= doc_end {
+            // We are appending a new line to the document
+
+            // TODO: this is all really hard because of kakoune implicitly adding a newline
+            // A better approach would be to send the added newline to the daemon after this
+            // delta and let it figure it out, so we never get a situation where the kak buffer
+            // has a newline and the other peers don't have it.
+
+            // Kakoune will implicitly add a newline to the end of the file after
+            // appending, so if the replacement already ends with one, we don't need to type it.
+            let replacement = maybe_strip_trailing_newline(&op.replacement);
+
+            // Update doc_end to account for added lines
+            doc_end.line += replacement.lines().count();
+
+            commands += &format!(
+                "execute-keys \'gea{}<esc>\';",
+                escape_single_quotes(&escape_keys(replacement))
             );
-            [
-                format!("select {}", to_kak_range(&op.range)),
-                format!(
-                    "execute-keys \'{}{}<esc>\'",
-                    if op.range.start == op.range.end {
-                        "i"
-                    } else {
-                        "<s-h>c"
-                    },
-                    &op.replacement
-                ),
-            ]
-        })
-        .join("; ");
+        } else {
+            commands += &format!(
+                "select {}; execute-keys \'{}{}<esc>\';",
+                to_kak_range(&op.range),
+                if op.range.start == op.range.end {
+                    "i"
+                } else {
+                    "<s-h>c"
+                },
+                escape_single_quotes(&escape_keys(&op.replacement))
+            )
+        }
+    }
+
     let eval_command = format!(
         "evaluate-commands -buffer '{}' \"{}\"\n",
         escape_single_quotes(buffer_name),
-        escape_single_quotes(&escape_keys(&commands))
+        commands
     );
     debug!("executing command: {eval_command}");
     send_commands_to_kakoune(session_name, &eval_command)?;
@@ -572,25 +615,46 @@ fn apply_delta_to_string(prev_content: &str, delta: &EditorTextDelta) -> String 
     };
     for edit in &delta.0 {
         while old_position < edit.range.start {
-            let char = grapheme_iter.next().expect("edit out of range");
-            new_content += char;
-            if char == "\n" {
-                old_position.line += 1;
-                old_position.character = 0;
-            } else {
-                old_position.character += 1;
+            match grapheme_iter.next() {
+                Some(char) => {
+                    new_content += char;
+                    if char == "\n" {
+                        old_position.line += 1;
+                        old_position.character = 0;
+                    } else {
+                        old_position.character += 1;
+                    }
+                }
+                None => {
+                    debug!("reached end of document while applying delta, old pos: {old_position:?}, edit range start: {:?}", edit.range.start);
+                    if edit.range.start.line == old_position.line + 1
+                        && edit.range.start.character == 0
+                        || edit.range.start.line == old_position.line
+                            && edit.range.start.character == old_position.character + 1
+                    {
+                        break;
+                    } else {
+                        panic!("edit out of range")
+                    }
+                }
             }
         }
 
         new_content += &edit.replacement;
 
         while old_position < edit.range.end {
-            let char = grapheme_iter.next();
-            if char == Some("\n") {
-                old_position.line += 1;
-                old_position.character = 0;
-            } else {
-                old_position.character += 1;
+            match grapheme_iter.next() {
+                Some(char) => {
+                    if char == "\n" {
+                        old_position.line += 1;
+                        old_position.character = 0;
+                    } else {
+                        old_position.character += 1;
+                    }
+                }
+                None => {
+                    break;
+                }
             }
         }
     }
@@ -669,8 +733,8 @@ fn main() -> anyhow::Result<()> {
                 if revision != editor_revision {
                     continue;
                 }
+                apply_delta_to_buffer(&prev_content, &kak_session, &current_buffer_name, &delta)?;
                 prev_content = apply_delta_to_string(&prev_content, &delta);
-                apply_delta_to_buffer(&prev_content, &kak_session, &current_buffer_name, delta)?;
                 daemon_revision += 1;
             }
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
