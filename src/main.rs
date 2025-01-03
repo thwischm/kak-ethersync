@@ -508,47 +508,45 @@ fn apply_delta_to_buffer(
     delta: &EditorTextDelta,
 ) -> anyhow::Result<()> {
     debug!("applying delta: {delta:?}");
-    let mut doc_end = first_invalid_position(doc);
+    let doc_end = first_invalid_position(doc);
     debug!("doc_end: {doc_end:?}");
 
+    let (insertions, appends) = delta
+        .0
+        .iter()
+        .cloned()
+        .partition(|op| doc_end.character != 0 || op.range.start < doc_end);
+
     let mut commands = String::new();
-    for op in delta.clone().sequential_ops(doc) {
+    for op in EditorTextDelta(insertions).sequential_ops(doc) {
         debug!(
             "replacement: {:?}, bytes: {:x?}",
             op.replacement,
             op.replacement.as_bytes()
         );
-        if doc_end.character == 0 && op.range.start >= doc_end && op.range.end >= doc_end {
-            // We are appending a new line to the document
+        commands += &format!(
+            "select {}; execute-keys \'{}{}<esc>\';",
+            to_kak_range(&op.range),
+            if op.range.start == op.range.end {
+                "i"
+            } else {
+                "<s-h>c"
+            },
+            escape_single_quotes(&escape_keys(&op.replacement)) //TODO: update doc_end
+        )
+    }
 
-            // TODO: this is all really hard because of kakoune implicitly adding a newline
-            // A better approach would be to send the added newline to the daemon after this
-            // delta and let it figure it out, so we never get a situation where the kak buffer
-            // has a newline and the other peers don't have it.
+    for op in appends {
+        // We are appending to the end of the document
 
-            // Kakoune will implicitly add a newline to the end of the file after
-            // appending, so if the replacement already ends with one, we don't need to type it.
-            let replacement = maybe_strip_trailing_newline(&op.replacement);
+        // Kakoune will implicitly add a newline to the end of the file after
+        // appending, so if the replacement already ends with one, we don't need to type it.
+        let replacement = maybe_strip_trailing_newline(&op.replacement);
 
-            // Update doc_end to account for added lines
-            doc_end.line += replacement.lines().count();
-
-            commands += &format!(
-                "execute-keys \'gea{}<esc>\';",
-                escape_single_quotes(&escape_keys(replacement))
-            );
-        } else {
-            commands += &format!(
-                "select {}; execute-keys \'{}{}<esc>\';",
-                to_kak_range(&op.range),
-                if op.range.start == op.range.end {
-                    "i"
-                } else {
-                    "<s-h>c"
-                },
-                escape_single_quotes(&escape_keys(&op.replacement))
-            )
-        }
+        commands += &format!(
+            "execute-keys \'gea{}<esc>\';",
+            escape_single_quotes(&escape_keys(replacement))
+        );
     }
 
     let eval_command = format!(
@@ -685,6 +683,7 @@ fn main() -> anyhow::Result<()> {
     let mut kak_session = "".to_string();
 
     let mut current_buffer_name = "".to_string();
+    let mut current_file_path = "".to_string();
 
     loop {
         match reciever.recv()? {
@@ -709,11 +708,12 @@ fn main() -> anyhow::Result<()> {
                 buffer_name,
                 initial_content,
             }) => {
-                prev_content = initial_content;
-                current_buffer_name = buffer_name;
                 daemon_connection.send(EditorProtocolMessageFromEditor::Open {
                     uri: "file://".to_owned() + &file_path,
                 })?;
+                prev_content = initial_content;
+                current_buffer_name = buffer_name;
+                current_file_path = file_path;
             }
             Message::FromEditor(MessageFromEditor::SessionStarted { session_name }) => {
                 kak_session = session_name;
@@ -731,11 +731,35 @@ fn main() -> anyhow::Result<()> {
                 delta,
             }) => {
                 if revision != editor_revision {
+                    debug!("we've already edited the document further since this revision, skipping");
                     continue;
                 }
+
+                daemon_revision += 1;
+
                 apply_delta_to_buffer(&prev_content, &kak_session, &current_buffer_name, &delta)?;
                 prev_content = apply_delta_to_string(&prev_content, &delta);
-                daemon_revision += 1;
+
+                // if !prev_content.ends_with("\n") {
+                //     // Kakoune always implicitly adds a newline to the end of the file.
+                //     // If the edits in the delta don't add a newline, the other editors
+                //     // will get out of sync if we don't tell them about the newline.
+                //     let doc_end = first_invalid_position(&prev_content);
+                //     daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
+                //         uri: "file://".to_owned() + &current_file_path,
+                //         revision: daemon_revision,
+                //         delta: EditorTextDelta(vec![EditorTextOp {
+                //             range: Range {
+                //                 start: doc_end,
+                //                 end: doc_end,
+                //             },
+                //             replacement: "\n".to_string(),
+                //         }]),
+                //     })?;
+                //     editor_revision += 1;
+
+                //     prev_content += "\n";
+                // }
             }
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
                 userid,
