@@ -1,0 +1,1653 @@
+[m[22;1;32m   Compiling[22;39m kak-ethersync v0.1.0 (/home/salmiak/dev/kak-ethersync)
+[m[22;1;33mwarning[39m: unused import: `Receiver`
+[m [22;1;94m--> [22;39msrc/main.rs:5:23
+[m  [22;1;94m|
+[m[22;1;94m5[22;39m [22;1;94m|[22;39m use std::sync::mpsc::{Receiver, Sender};
+[m  [22;1;94m|[22;39m                       [22;1;33m^^^^^^^^
+[m  [22;1;94m|
+[m  [22;1;94m= [39mnote[22m: `#[warn(unused_imports)]` on by default
+
+[m[22;1;33mwarning[39m: unused variable: `commands`
+[m   [22;1;94m--> [22;39msrc/main.rs:424:9
+[m    [22;1;94m|
+[m[22;1;94m424[22;39m [22;1;94m|[22;39m     let commands = delta
+[m    [22;1;94m|[22;39m         [22;1;33m^^^^^^^^[22;39m [22;1;33mhelp: if this is intentional, prefix it with an underscore: `_commands`
+[m    [22;1;94m|
+[m    [22;1;94m= [39mnote[22m: `#[warn(unused_variables)]` on by default
+
+[m[22;1;33mwarning[39m: unused variable: `uri`
+[m   [22;1;94m--> [22;39msrc/main.rs:517:17
+[m    [22;1;94m|
+[m[22;1;94m517[22;39m [22;1;94m|[22;39m                 uri,
+[m    [22;1;94m|[22;39m                 [22;1;33m^^^[22;39m [22;1;33mhelp: try ignoring the field: `uri: _`
+
+[m[22;1;33mwarning[39m: unused variable: `revision`
+[m   [22;1;94m--> [22;39msrc/main.rs:518:17
+[m    [22;1;94m|
+[m[22;1;94m518[22;39m [22;1;94m|[22;39m                 revision,
+[m    [22;1;94m|[22;39m                 [22;1;33m^^^^^^^^[22;39m [22;1;33mhelp: try ignoring the field: `revision: _`
+
+[m[22;1;33mwarning[39m: unused variable: `userid`
+[m   [22;1;94m--> [22;39msrc/main.rs:522:17
+[m    [22;1;94m|
+[m[22;1;94m522[22;39m [22;1;94m|[22;39m                 userid,
+[m    [22;1;94m|[22;39m                 [22;1;33m^^^^^^[22;39m [22;1;33mhelp: try ignoring the field: `userid: _`
+
+[m[22;1;33mwarning[39m: unused variable: `uri`
+[m   [22;1;94m--> [22;39msrc/main.rs:524:17
+[m    [22;1;94m|
+[m[22;1;94m524[22;39m [22;1;94m|[22;39m                 uri,
+[m    [22;1;94m|[22;39m                 [22;1;33m^^^[22;39m [22;1;33mhelp: try ignoring the field: `uri: _`
+
+[m[22;1;33mwarning[39m: variant `Notification` is never constructed
+[m  [22;1;94m--> [22;39msrc/main.rs:73:5
+[m   [22;1;94m|
+[m[22;1;94m66[22;39m [22;1;94m|[22;39m enum JSONRPCFromEditor {
+[m   [22;1;94m|[22;39m      [22;1;94m-----------------[22;39m [22;1;94mvariant in this enum
+[m[22;1;94m...
+[m[22;1;94m73[22;39m [22;1;94m|[22;39m     Notification {
+[m   [22;1;94m|[22;39m     [22;1;33m^^^^^^^^^^^^
+[m   [22;1;94m|
+[m   [22;1;94m= [39mnote[22m: `JSONRPCFromEditor` has derived impls for the traits `Clone` and `Debug`, but these are i
+[mntentionally ignored during dead code analysis
+[m   [22;1;94m= [39mnote[22m: `#[warn(dead_code)]` on by default
+
+[m[22;1;33mwarning[39m: unused `Result` that must be used
+[m   [22;1;94m--> [22;39msrc/main.rs:402:17
+[m    [22;1;94m|
+[m[22;1;94m402[22;39m [22;1;94m|[22;39m                 sender.send(Message::FromDaemon(message));
+[m    [22;1;94m|[22;39m                 [22;1;33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[m    [22;1;94m|
+[m    [22;1;94m= [39mnote[22m: this `Result` may be an `Err` variant, which should be handled
+[m    [22;1;94m= [39mnote[22m: `#[warn(unused_must_use)]` on by default
+[m[22;1;96mhelp[22;39m: use `let _ = ...` to ignore the resulting value
+[m    [22;1;94m|
+[m[22;1;94m402[22;39m [22;1;94m| [22;39m                [92mlet _ = [39msender.send(Message::FromDaemon(message));
+[m    [22;1;94m|[22;39m                 [92m+++++++
+
+[m[22;1;33mwarning[39m:[22m `kak-ethersync` (bin "kak-ethersync") generated 8 warnings (run `cargo fix --bin "kak-ether
+[msync"` to apply 1 suggestion)
+[m[22;1;32m    Finished[22;39m ]8;;https://doc.rust-lang.org/cargo/reference/profiles.html#default-profiles\`dev` profile [unoptimized + debuginfo]]8;;\ target(s) in 2.60s
+[m[22;1;32m     Running[22;39m `target/debug/kak-ethersync`
+[msending {"jsonrpc":"2.0","id":0,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":3,"character":8},"end":{"line":3,"character":8}}]}}
+[mgot some line: {"id":0,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":1,"method":"open","params":{"uri":"file:///home/salmiak/dev/kak-ethers
+[mync/test2/file"}}
+[mgot some line: {"id":1,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 0, character: 0 }, end
+[m: Position { line: 0, character: 0 } }, replacement: "test a\nyayasodijasdoij\nes geht ein bisschen\
+[mnmeeptest" }])
+[msending {"jsonrpc":"2.0","id":2,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethers
+[mync/test2/file","revision":0,"delta":[{"range":{"start":{"line":0,"character":0},"end":{"line":0,"ch
+[maracter":0}},"replacement":"test a\nyayasodijasdoij\nes geht ein bisschen\nmeeptest"}]}}
+[mgot some line: {"id":2,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":3,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":0,"character":0},"end":{"line":0,"character":0}}]}}
+[mgot some line: {"id":3,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":4,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":4,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":5,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":11}}]}}
+[mgot some line: {"id":5,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":6,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":3,"character":8}}]}}
+[mgot some line: {"id":6,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":7,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":2,"character":8}}]}}
+[mgot some line: {"id":7,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":8,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":7}}]}}
+[mgot some line: {"id":8,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":9,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":4}}]}}
+[mgot some line: {"id":9,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":10,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":3}}]}}
+[mgot some line: {"id":10,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":11,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":3}}]}}
+[mgot some line: {"id":11,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":12,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":5},"end":{"line":1,"character":5}}]}}
+[mgot some line: {"id":12,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":13,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":5},"end":{"line":1,"character":5}}]}}
+[mgot some line: {"id":13,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m3 }, end: Position { line: 2, character: 3 } }]
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m11 }, end: Position { line: 2, character: 11 } }]
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m8 }, end: Position { line: 2, character: 11 } }]
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 1, character: 
+[m4 }, end: Position { line: 1, character: 4 } }]
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m10 }, end: Position { line: 2, character: 10 } }]
+[msending {"jsonrpc":"2.0","id":14,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":3,"character":5},"end":{"line":3,"character":5}}]}}
+[mgot some line: {"id":14,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":15,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":3,"character":5},"end":{"line":3,"character":5}}]}}
+[mgot some line: {"id":15,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":16,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":16,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":17,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":2,"character":7}}]}}
+[mgot some line: {"id":17,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":18,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":3,"character":8}}]}}
+[mgot some line: {"id":18,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":19,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":2,"character":11}}]}}
+[mgot some line: {"id":19,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":20,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":2,"character":11}}]}}
+[mgot some line: {"id":20,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":21,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}}]}}
+[mgot some line: {"id":21,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":22,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}}]}}
+[mgot some line: {"id":22,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":23,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}}]}}
+[mgot some line: {"id":23,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 3 }, end
+[m: Position { line: 2, character: 3 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":24,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":3},"end":{"line":2,"c
+[mharacter":3}},"replacement":"a"}]}}
+[mgot some line: {"id":24,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":25,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":4},"end":{"line":2,"character":4}}]}}
+[mgot some line: {"id":25,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m11 }, end: Position { line: 2, character: 11 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 4 }, end
+[m: Position { line: 2, character: 4 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":26,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":4},"end":{"line":2,"c
+[mharacter":4}},"replacement":"h"}]}}
+[mgot some line: {"id":26,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":27,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":5},"end":{"line":2,"character":5}}]}}
+[mgot some line: {"id":27,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m12 }, end: Position { line: 2, character: 12 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 5 }, end
+[m: Position { line: 2, character: 5 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":28,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":5},"end":{"line":2,"c
+[mharacter":5}},"replacement":"a"}]}}
+[mgot some line: {"id":28,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m13 }, end: Position { line: 2, character: 13 } }]
+[msending {"jsonrpc":"2.0","id":29,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":29,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 6 }, end
+[m: Position { line: 2, character: 6 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":30,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":6},"end":{"line":2,"c
+[mharacter":6}},"replacement":" "}]}}
+[mgot some line: {"id":30,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m14 }, end: Position { line: 2, character: 14 } }]
+[msending {"jsonrpc":"2.0","id":31,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":7},"end":{"line":2,"character":7}}]}}
+[msending {"jsonrpc":"2.0","id":32,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":7},"end":{"line":2,"character":7}}]}}
+[mgot some line: {"id":31,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":32,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 3 }, end
+[m: Position { line: 2, character: 7 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":33,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":3},"end":{"line":2,"c
+[mharacter":7}},"replacement":""}]}}
+[mgot some line: {"id":33,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m10 }, end: Position { line: 2, character: 10 } }]
+[msending {"jsonrpc":"2.0","id":34,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}}]}}
+[mgot some line: {"id":34,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":35,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":8},"end":{"line":2,"character":8}}]}}
+[mgot some line: {"id":35,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":36,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":8},"end":{"line":2,"character":8}}]}}
+[mgot some line: {"id":36,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":37,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":4},"end":{"line":1,"character":4}}]}}
+[mgot some line: {"id":37,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":38,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":4},"end":{"line":1,"character":4}}]}}
+[mgot some line: {"id":38,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 4 }, end
+[m: Position { line: 1, character: 4 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":39,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":4},"end":{"line":1,"c
+[mharacter":4}},"replacement":"h"}]}}
+[mgot some line: {"id":39,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":40,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":5},"end":{"line":1,"character":5}}]}}
+[mgot some line: {"id":40,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 5 }, end
+[m: Position { line: 1, character: 5 } }, replacement: "e" }])
+[msending {"jsonrpc":"2.0","id":41,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":5},"end":{"line":1,"c
+[mharacter":5}},"replacement":"e"}]}}
+[mgot some line: {"id":41,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":42,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":6},"end":{"line":1,"character":6}}]}}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 5 }, end
+[m: Position { line: 1, character: 6 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":43,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":5},"end":{"line":1,"c
+[mharacter":6}},"replacement":""}]}}
+[mgot some line: {"id":42,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":43,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":44,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":5},"end":{"line":1,"character":5}}]}}
+[mgot some line: {"id":44,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 4 }, end
+[m: Position { line: 1, character: 5 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":45,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":4},"end":{"line":1,"c
+[mharacter":5}},"replacement":""}]}}
+[mgot some line: {"id":45,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":46,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":4},"end":{"line":1,"character":4}}]}}
+[mgot some line: {"id":46,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 4 }, end
+[m: Position { line: 1, character: 4 } }, replacement: "g" }])
+[msending {"jsonrpc":"2.0","id":47,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":4},"end":{"line":1,"c
+[mharacter":4}},"replacement":"g"}]}}
+[mgot some line: {"id":47,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":48,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":5},"end":{"line":1,"character":5}}]}}
+[mgot some line: {"id":48,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 5 }, end
+[m: Position { line: 1, character: 5 } }, replacement: "e" }])
+[msending {"jsonrpc":"2.0","id":49,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":5},"end":{"line":1,"c
+[mharacter":5}},"replacement":"e"}]}}
+[mgot some line: {"id":49,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":50,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":6},"end":{"line":1,"character":6}}]}}
+[mgot some line: {"id":50,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 6 }, end
+[m: Position { line: 1, character: 6 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":51,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":6},"end":{"line":1,"c
+[mharacter":6}},"replacement":"h"}]}}
+[mgot some line: {"id":51,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":52,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":7},"end":{"line":1,"character":7}}]}}
+[mgot some line: {"id":52,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 7 }, end
+[m: Position { line: 1, character: 7 } }, replacement: "t" }])
+[msending {"jsonrpc":"2.0","id":53,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":7},"end":{"line":1,"c
+[mharacter":7}},"replacement":"t"}]}}
+[mgot some line: {"id":53,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":54,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":8},"end":{"line":1,"character":8}}]}}
+[mgot some line: {"id":54,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 8 }, end
+[m: Position { line: 1, character: 8 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":55,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":8},"end":{"line":1,"c
+[mharacter":8}},"replacement":" "}]}}
+[msending {"jsonrpc":"2.0","id":56,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":9},"end":{"line":1,"character":9}}]}}
+[mgot some line: {"id":55,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":56,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 9 }, end
+[m: Position { line: 1, character: 9 } }, replacement: "e" }])
+[msending {"jsonrpc":"2.0","id":57,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":9},"end":{"line":1,"c
+[mharacter":9}},"replacement":"e"}]}}
+[msending {"jsonrpc":"2.0","id":58,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":10},"end":{"line":1,"character":10}}]}}
+[mgot some line: {"id":57,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":58,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 11 }, en
+[md: Position { line: 1, character: 11 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":59,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":11},"end":{"line":1,"
+[mcharacter":11}},"replacement":"s"}]}}
+[mgot some line: {"id":59,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":60,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":11},"end":{"line":1,"character":11}}]}}
+[mgot some line: {"id":60,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 11 }, en
+[md: Position { line: 1, character: 11 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":61,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":11},"end":{"line":1,"
+[mcharacter":11}},"replacement":" "}]}}
+[mgot some line: {"id":61,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":62,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":12},"end":{"line":1,"character":12}}]}}
+[mgot some line: {"id":62,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 12 }, en
+[md: Position { line: 1, character: 12 } }, replacement: "n" }])
+[msending {"jsonrpc":"2.0","id":63,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":12},"end":{"line":1,"
+[mcharacter":12}},"replacement":"n"}]}}
+[mgot some line: {"id":63,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":64,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":13},"end":{"line":1,"character":13}}]}}
+[mgot some line: {"id":64,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 13 }, en
+[md: Position { line: 1, character: 13 } }, replacement: "o" }])
+[msending {"jsonrpc":"2.0","id":65,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":13},"end":{"line":1,"
+[mcharacter":13}},"replacement":"o"}]}}
+[mgot some line: {"id":65,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":66,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":14},"end":{"line":1,"character":14}}]}}
+[mgot some line: {"id":66,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 14 }, en
+[md: Position { line: 1, character: 14 } }, replacement: "c" }])
+[msending {"jsonrpc":"2.0","id":67,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":14},"end":{"line":1,"
+[mcharacter":14}},"replacement":"c"}]}}
+[mgot some line: {"id":67,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":68,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":15},"end":{"line":1,"character":15}}]}}
+[mgot some line: {"id":68,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 15 }, en
+[md: Position { line: 1, character: 15 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":69,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":15},"end":{"line":1,"
+[mcharacter":15}},"replacement":"h"}]}}
+[mgot some line: {"id":69,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":70,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":16},"end":{"line":1,"character":16}}]}}
+[mgot some line: {"id":70,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 16 }, en
+[md: Position { line: 1, character: 16 } }, replacement: "?" }])
+[msending {"jsonrpc":"2.0","id":71,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":16},"end":{"line":1,"
+[mcharacter":16}},"replacement":"?"}]}}
+[mgot some line: {"id":71,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":72,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":17},"end":{"line":1,"character":17}}]}}
+[mgot some line: {"id":72,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":73,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":17},"end":{"line":1,"character":17}}]}}
+[mgot some line: {"id":73,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 4 }, end
+[m: Position { line: 1, character: 17 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":74,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":4},"end":{"line":1,"c
+[mharacter":17}},"replacement":""}]}}
+[mgot some line: {"id":74,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":75,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":4},"end":{"line":1,"character":4}}]}}
+[mgot some line: {"id":75,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":76,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":4},"end":{"line":1,"character":4}}]}}
+[mgot some line: {"id":76,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":77,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":4},"end":{"line":2,"character":4}}]}}
+[mgot some line: {"id":77,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":78,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":78,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":79,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":79,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":80,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}},{"sta
+[mrt":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":80,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":81,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}},{"sta
+[mrt":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":81,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":82,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}},{"sta
+[mrt":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":82,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 2 }, end
+[m: Position { line: 1, character: 2 } }, replacement: "so" }, EditorTextOp { range: Range { start: Po
+[msition { line: 2, character: 3 }, end: Position { line: 2, character: 3 } }, replacement: "so" }])
+[msending {"jsonrpc":"2.0","id":83,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":2},"end":{"line":1,"c
+[mharacter":2}},"replacement":"so"}]}}
+[msending {"jsonrpc":"2.0","id":84,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":3},"end":{"line":2,"c
+[mharacter":3}},"replacement":"so"}]}}
+[mgot some line: {"id":83,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":84,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":85,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":5},"end":{"line":2,"character":5}},{"sta
+[mrt":{"line":1,"character":4},"end":{"line":1,"character":4}}]}}
+[mgot some line: {"id":85,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m12 }, end: Position { line: 2, character: 12 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 4 }, end
+[m: Position { line: 1, character: 4 } }, replacement: "," }, EditorTextOp { range: Range { start: Pos
+[mition { line: 2, character: 5 }, end: Position { line: 2, character: 5 } }, replacement: "," }])
+[msending {"jsonrpc":"2.0","id":86,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":4},"end":{"line":1,"c
+[mharacter":4}},"replacement":","}]}}
+[msending {"jsonrpc":"2.0","id":87,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":5},"end":{"line":2,"c
+[mharacter":5}},"replacement":","}]}}
+[mgot some line: {"id":86,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":87,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":88,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}},{"sta
+[mrt":{"line":1,"character":5},"end":{"line":1,"character":5}}]}}
+[mgot some line: {"id":88,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m13 }, end: Position { line: 2, character: 13 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 5 }, end
+[m: Position { line: 1, character: 5 } }, replacement: " " }, EditorTextOp { range: Range { start: Pos
+[mition { line: 2, character: 6 }, end: Position { line: 2, character: 6 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":89,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":5},"end":{"line":1,"c
+[mharacter":5}},"replacement":" "}]}}
+[msending {"jsonrpc":"2.0","id":90,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":6},"end":{"line":2,"c
+[mharacter":6}},"replacement":" "}]}}
+[mgot some line: {"id":89,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":90,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m14 }, end: Position { line: 2, character: 14 } }]
+[msending {"jsonrpc":"2.0","id":91,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":7},"end":{"line":2,"character":7}},{"sta
+[mrt":{"line":1,"character":6},"end":{"line":1,"character":6}}]}}
+[mgot some line: {"id":91,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 6 }, end
+[m: Position { line: 1, character: 6 } }, replacement: "w" }, EditorTextOp { range: Range { start: Pos
+[mition { line: 2, character: 7 }, end: Position { line: 2, character: 7 } }, replacement: "w" }])
+[msending {"jsonrpc":"2.0","id":92,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":6},"end":{"line":1,"c
+[mharacter":6}},"replacement":"w"}]}}
+[msending {"jsonrpc":"2.0","id":93,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":7},"end":{"line":2,"c
+[mharacter":7}},"replacement":"w"}]}}
+[mgot some line: {"id":92,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":93,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":94,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":8},"end":{"line":2,"character":8}},{"sta
+[mrt":{"line":1,"character":7},"end":{"line":1,"character":7}}]}}
+[mgot some line: {"id":94,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m15 }, end: Position { line: 2, character: 15 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 7 }, end
+[m: Position { line: 1, character: 7 } }, replacement: "o" }, EditorTextOp { range: Range { start: Pos
+[mition { line: 2, character: 8 }, end: Position { line: 2, character: 8 } }, replacement: "o" }])
+[msending {"jsonrpc":"2.0","id":95,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":7},"end":{"line":1,"c
+[mharacter":7}},"replacement":"o"}]}}
+[msending {"jsonrpc":"2.0","id":96,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":8},"end":{"line":2,"c
+[mharacter":8}},"replacement":"o"}]}}
+[mgot some line: {"id":95,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":96,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":97,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-eth
+[mersync/test2/file","ranges":[{"start":{"line":2,"character":9},"end":{"line":2,"character":9}},{"sta
+[mrt":{"line":1,"character":8},"end":{"line":1,"character":8}}]}}
+[mgot some line: {"id":97,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m16 }, end: Position { line: 2, character: 16 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 8 }, end
+[m: Position { line: 1, character: 8 } }, replacement: "w" }, EditorTextOp { range: Range { start: Pos
+[mition { line: 2, character: 9 }, end: Position { line: 2, character: 9 } }, replacement: "w" }])
+[msending {"jsonrpc":"2.0","id":98,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":8},"end":{"line":1,"c
+[mharacter":8}},"replacement":"w"}]}}
+[msending {"jsonrpc":"2.0","id":99,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ether
+[msync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":9},"end":{"line":2,"c
+[mharacter":9}},"replacement":"w"}]}}
+[mgot some line: {"id":98,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":99,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":100,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":10},"end":{"line":2,"character":10}},{"
+[mstart":{"line":1,"character":9},"end":{"line":1,"character":9}}]}}
+[mgot some line: {"id":100,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m17 }, end: Position { line: 2, character: 17 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 9 }, end
+[m: Position { line: 1, character: 9 } }, replacement: " " }, EditorTextOp { range: Range { start: Pos
+[mition { line: 2, character: 10 }, end: Position { line: 2, character: 10 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":101,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":9},"end":{"line":1,"
+[mcharacter":9}},"replacement":" "}]}}
+[msending {"jsonrpc":"2.0","id":102,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":10},"end":{"line":2,
+[m"character":10}},"replacement":" "}]}}
+[mgot some line: {"id":101,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":102,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":103,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":11},"end":{"line":2,"character":11}},{"
+[mstart":{"line":1,"character":10},"end":{"line":1,"character":10}}]}}
+[mgot some line: {"id":103,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m18 }, end: Position { line: 2, character: 18 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 10 }, en
+[md: Position { line: 1, character: 10 } }, replacement: "o" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 11 }, end: Position { line: 2, character: 11 } }, replacement: "o" }])
+[msending {"jsonrpc":"2.0","id":104,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":10},"end":{"line":1,
+[m"character":10}},"replacement":"o"}]}}
+[msending {"jsonrpc":"2.0","id":105,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":11},"end":{"line":2,
+[m"character":11}},"replacement":"o"}]}}
+[mgot some line: {"id":104,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":105,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":106,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":12},"end":{"line":2,"character":12}},{"
+[mstart":{"line":1,"character":11},"end":{"line":1,"character":11}}]}}
+[mgot some line: {"id":106,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m19 }, end: Position { line: 2, character: 19 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 11 }, en
+[md: Position { line: 1, character: 11 } }, replacement: "w" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 12 }, end: Position { line: 2, character: 12 } }, replacement: "w" }])
+[msending {"jsonrpc":"2.0","id":107,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":11},"end":{"line":1,
+[m"character":11}},"replacement":"w"}]}}
+[msending {"jsonrpc":"2.0","id":108,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":12},"end":{"line":2,
+[m"character":12}},"replacement":"w"}]}}
+[mgot some line: {"id":107,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":108,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":109,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":13},"end":{"line":2,"character":13}},{"
+[mstart":{"line":1,"character":12},"end":{"line":1,"character":12}}]}}
+[mgot some line: {"id":109,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m20 }, end: Position { line: 2, character: 20 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 12 }, en
+[md: Position { line: 1, character: 12 } }, replacement: "a" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 13 }, end: Position { line: 2, character: 13 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":110,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":12},"end":{"line":1,
+[m"character":12}},"replacement":"a"}]}}
+[msending {"jsonrpc":"2.0","id":111,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":13},"end":{"line":2,
+[m"character":13}},"replacement":"a"}]}}
+[mgot some line: {"id":110,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":111,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":112,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":14},"end":{"line":2,"character":14}},{"
+[mstart":{"line":1,"character":13},"end":{"line":1,"character":13}}]}}
+[mgot some line: {"id":112,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m21 }, end: Position { line: 2, character: 21 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 13 }, en
+[md: Position { line: 1, character: 13 } }, replacement: "a" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 14 }, end: Position { line: 2, character: 14 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":113,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":13},"end":{"line":1,
+[m"character":13}},"replacement":"a"}]}}
+[msending {"jsonrpc":"2.0","id":114,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":14},"end":{"line":2,
+[m"character":14}},"replacement":"a"}]}}
+[msending {"jsonrpc":"2.0","id":115,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":15},"end":{"line":2,"character":15}},{"
+[mstart":{"line":1,"character":14},"end":{"line":1,"character":14}}]}}
+[mgot some line: {"id":113,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":114,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":115,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m22 }, end: Position { line: 2, character: 22 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 14 }, en
+[md: Position { line: 1, character: 14 } }, replacement: "a" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 15 }, end: Position { line: 2, character: 15 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":116,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":14},"end":{"line":1,
+[m"character":14}},"replacement":"a"}]}}
+[msending {"jsonrpc":"2.0","id":117,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":15},"end":{"line":2,
+[m"character":15}},"replacement":"a"}]}}
+[mgot some line: {"id":116,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":117,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":118,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":16},"end":{"line":2,"character":16}},{"
+[mstart":{"line":1,"character":15},"end":{"line":1,"character":15}}]}}
+[mgot some line: {"id":118,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m23 }, end: Position { line: 2, character: 23 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 15 }, en
+[md: Position { line: 1, character: 15 } }, replacement: " " }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 16 }, end: Position { line: 2, character: 16 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":119,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":15},"end":{"line":1,
+[m"character":15}},"replacement":" "}]}}
+[msending {"jsonrpc":"2.0","id":120,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":16},"end":{"line":2,
+[m"character":16}},"replacement":" "}]}}
+[mgot some line: {"id":119,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":120,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":121,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":17},"end":{"line":2,"character":17}},{"
+[mstart":{"line":1,"character":16},"end":{"line":1,"character":16}}]}}
+[mgot some line: {"id":121,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m24 }, end: Position { line: 2, character: 24 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 16 }, en
+[md: Position { line: 1, character: 16 } }, replacement: "a" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 17 }, end: Position { line: 2, character: 17 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":122,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":16},"end":{"line":1,
+[m"character":16}},"replacement":"a"}]}}
+[msending {"jsonrpc":"2.0","id":123,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":17},"end":{"line":2,
+[m"character":17}},"replacement":"a"}]}}
+[mgot some line: {"id":122,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":123,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":124,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":18},"end":{"line":2,"character":18}},{"
+[mstart":{"line":1,"character":17},"end":{"line":1,"character":17}}]}}
+[mgot some line: {"id":124,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m25 }, end: Position { line: 2, character: 25 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 16 }, en
+[md: Position { line: 1, character: 17 } }, replacement: "" }, EditorTextOp { range: Range { start: Po
+[msition { line: 2, character: 17 }, end: Position { line: 2, character: 18 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":125,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":16},"end":{"line":1,
+[m"character":17}},"replacement":""}]}}
+[msending {"jsonrpc":"2.0","id":126,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":17},"end":{"line":2,
+[m"character":18}},"replacement":""}]}}
+[mgot some line: {"id":125,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":126,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":127,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":17},"end":{"line":2,"character":17}},{"
+[mstart":{"line":1,"character":16},"end":{"line":1,"character":16}}]}}
+[mgot some line: {"id":127,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m24 }, end: Position { line: 2, character: 24 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 17 }, en
+[md: Position { line: 1, character: 17 } }, replacement: "y" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 17 }, end: Position { line: 2, character: 17 } }, replacement: "y" }])
+[msending {"jsonrpc":"2.0","id":128,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":17},"end":{"line":1,
+[m"character":17}},"replacement":"y"}]}}
+[msending {"jsonrpc":"2.0","id":129,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":17},"end":{"line":2,
+[m"character":17}},"replacement":"y"}]}}
+[mgot some line: {"id":128,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":129,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":130,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":18},"end":{"line":2,"character":18}},{"
+[mstart":{"line":1,"character":17},"end":{"line":1,"character":17}}]}}
+[mgot some line: {"id":130,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m25 }, end: Position { line: 2, character: 25 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 17 }, en
+[md: Position { line: 1, character: 17 } }, replacement: "a" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 18 }, end: Position { line: 2, character: 18 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":131,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":17},"end":{"line":1,
+[m"character":17}},"replacement":"a"}]}}
+[msending {"jsonrpc":"2.0","id":132,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":18},"end":{"line":2,
+[m"character":18}},"replacement":"a"}]}}
+[mgot some line: {"id":131,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":132,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m26 }, end: Position { line: 2, character: 26 } }]
+[msending {"jsonrpc":"2.0","id":133,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":19},"end":{"line":2,"character":19}},{"
+[mstart":{"line":1,"character":18},"end":{"line":1,"character":18}}]}}
+[mgot some line: {"id":133,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 19 }, en
+[md: Position { line: 1, character: 19 } }, replacement: "y" }, EditorTextOp { range: Range { start: P
+[mosition { line: 2, character: 19 }, end: Position { line: 2, character: 19 } }, replacement: "y" }])
+[msending {"jsonrpc":"2.0","id":134,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":19},"end":{"line":1,
+[m"character":19}},"replacement":"y"}]}}
+[msending {"jsonrpc":"2.0","id":135,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":19},"end":{"line":2,
+[m"character":19}},"replacement":"y"}]}}
+[mgot some line: {"id":134,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":135,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":136,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":20},"end":{"line":2,"character":20}},{"
+[mstart":{"line":1,"character":19},"end":{"line":1,"character":19}}]}}
+[mgot some line: {"id":136,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m27 }, end: Position { line: 2, character: 27 } }]
+[msending {"jsonrpc":"2.0","id":137,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":20},"end":{"line":2,"character":20}},{"
+[mstart":{"line":1,"character":19},"end":{"line":1,"character":19}}]}}
+[mgot some line: {"id":137,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 1, character: 2 }, end
+[m: Position { line: 1, character: 19 } }, replacement: "" }, EditorTextOp { range: Range { start: Pos
+[mition { line: 2, character: 3 }, end: Position { line: 2, character: 20 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":138,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":1,"character":2},"end":{"line":1,"
+[mcharacter":19}},"replacement":""}]}}
+[msending {"jsonrpc":"2.0","id":139,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":3},"end":{"line":2,"
+[mcharacter":20}},"replacement":""}]}}
+[mgot some line: {"id":138,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":139,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":140,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}},{"st
+[mart":{"line":1,"character":2},"end":{"line":1,"character":2}}]}}
+[mgot some line: {"id":140,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m10 }, end: Position { line: 2, character: 10 } }]
+[msending {"jsonrpc":"2.0","id":141,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":141,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":142,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":142,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":143,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":143,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 6 }, end
+[m: Position { line: 2, character: 6 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":144,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":6},"end":{"line":2,"
+[mcharacter":6}},"replacement":"s"}]}}
+[mgot some line: {"id":144,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m11 }, end: Position { line: 2, character: 11 } }]
+[msending {"jsonrpc":"2.0","id":145,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":7},"end":{"line":2,"character":7}}]}}
+[mgot some line: {"id":145,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 7 }, end
+[m: Position { line: 2, character: 7 } }, replacement: "o" }])
+[msending {"jsonrpc":"2.0","id":146,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":7},"end":{"line":2,"
+[mcharacter":7}},"replacement":"o"}]}}
+[mgot some line: {"id":146,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m12 }, end: Position { line: 2, character: 12 } }]
+[msending {"jsonrpc":"2.0","id":147,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":8},"end":{"line":2,"character":8}}]}}
+[mgot some line: {"id":147,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 8 }, end
+[m: Position { line: 2, character: 8 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":148,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":8},"end":{"line":2,"
+[mcharacter":8}},"replacement":" "}]}}
+[mgot some line: {"id":148,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m13 }, end: Position { line: 2, character: 13 } }]
+[msending {"jsonrpc":"2.0","id":149,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":9},"end":{"line":2,"character":9}}]}}
+[mgot some line: {"id":149,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 9 }, end
+[m: Position { line: 2, character: 9 } }, replacement: "w" }])
+[msending {"jsonrpc":"2.0","id":150,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":9},"end":{"line":2,"
+[mcharacter":9}},"replacement":"w"}]}}
+[mgot some line: {"id":150,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m14 }, end: Position { line: 2, character: 14 } }]
+[msending {"jsonrpc":"2.0","id":151,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":10},"end":{"line":2,"character":10}}]}}
+[mgot some line: {"id":151,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 10 }, en
+[md: Position { line: 2, character: 10 } }, replacement: "e" }])
+[msending {"jsonrpc":"2.0","id":152,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":10},"end":{"line":2,
+[m"character":10}},"replacement":"e"}]}}
+[mgot some line: {"id":152,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m15 }, end: Position { line: 2, character: 15 } }]
+[msending {"jsonrpc":"2.0","id":153,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":11},"end":{"line":2,"character":11}}]}}
+[mgot some line: {"id":153,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 11 }, en
+[md: Position { line: 2, character: 11 } }, replacement: "n" }])
+[msending {"jsonrpc":"2.0","id":154,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":11},"end":{"line":2,
+[m"character":11}},"replacement":"n"}]}}
+[mgot some line: {"id":154,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m16 }, end: Position { line: 2, character: 16 } }]
+[msending {"jsonrpc":"2.0","id":155,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":12},"end":{"line":2,"character":12}}]}}
+[mgot some line: {"id":155,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 12 }, en
+[md: Position { line: 2, character: 12 } }, replacement: "n" }])
+[msending {"jsonrpc":"2.0","id":156,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":12},"end":{"line":2,
+[m"character":12}},"replacement":"n"}]}}
+[mgot some line: {"id":156,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m17 }, end: Position { line: 2, character: 17 } }]
+[msending {"jsonrpc":"2.0","id":157,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":13},"end":{"line":2,"character":13}}]}}
+[mgot some line: {"id":157,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 13 }, en
+[md: Position { line: 2, character: 13 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":158,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":13},"end":{"line":2,
+[m"character":13}},"replacement":" "}]}}
+[mgot some line: {"id":158,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m18 }, end: Position { line: 2, character: 18 } }]
+[msending {"jsonrpc":"2.0","id":159,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":14},"end":{"line":2,"character":14}}]}}
+[mgot some line: {"id":159,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 14 }, en
+[md: Position { line: 2, character: 14 } }, replacement: "m" }])
+[msending {"jsonrpc":"2.0","id":160,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":14},"end":{"line":2,
+[m"character":14}},"replacement":"m"}]}}
+[mgot some line: {"id":160,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m19 }, end: Position { line: 2, character: 19 } }]
+[msending {"jsonrpc":"2.0","id":161,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":15},"end":{"line":2,"character":15}}]}}
+[mgot some line: {"id":161,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 15 }, en
+[md: Position { line: 2, character: 15 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":162,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":15},"end":{"line":2,
+[m"character":15}},"replacement":"a"}]}}
+[mgot some line: {"id":162,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m20 }, end: Position { line: 2, character: 20 } }]
+[msending {"jsonrpc":"2.0","id":163,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":16},"end":{"line":2,"character":16}}]}}
+[mgot some line: {"id":163,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 16 }, en
+[md: Position { line: 2, character: 16 } }, replacement: "n" }])
+[msending {"jsonrpc":"2.0","id":164,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":16},"end":{"line":2,
+[m"character":16}},"replacement":"n"}]}}
+[mgot some line: {"id":164,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m21 }, end: Position { line: 2, character: 21 } }]
+[msending {"jsonrpc":"2.0","id":165,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":17},"end":{"line":2,"character":17}}]}}
+[mgot some line: {"id":165,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 17 }, en
+[md: Position { line: 2, character: 17 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":166,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":17},"end":{"line":2,
+[m"character":17}},"replacement":" "}]}}
+[msending {"jsonrpc":"2.0","id":167,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":18},"end":{"line":2,"character":18}}]}}
+[mgot some line: {"id":166,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":167,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m22 }, end: Position { line: 2, character: 22 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 18 }, en
+[md: Position { line: 2, character: 18 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":168,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":18},"end":{"line":2,
+[m"character":18}},"replacement":"h"}]}}
+[mgot some line: {"id":168,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m23 }, end: Position { line: 2, character: 23 } }]
+[msending {"jsonrpc":"2.0","id":169,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":19},"end":{"line":2,"character":19}}]}}
+[mgot some line: {"id":169,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 19 }, en
+[md: Position { line: 2, character: 19 } }, replacement: "i" }])
+[msending {"jsonrpc":"2.0","id":170,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":19},"end":{"line":2,
+[m"character":19}},"replacement":"i"}]}}
+[mgot some line: {"id":170,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m24 }, end: Position { line: 2, character: 24 } }]
+[msending {"jsonrpc":"2.0","id":171,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":20},"end":{"line":2,"character":20}}]}}
+[mgot some line: {"id":171,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 20 }, en
+[md: Position { line: 2, character: 20 } }, replacement: "e" }])
+[msending {"jsonrpc":"2.0","id":172,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":20},"end":{"line":2,
+[m"character":20}},"replacement":"e"}]}}
+[msending {"jsonrpc":"2.0","id":173,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":21},"end":{"line":2,"character":21}}]}}
+[mgot some line: {"id":172,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":173,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m25 }, end: Position { line: 2, character: 25 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 21 }, en
+[md: Position { line: 2, character: 21 } }, replacement: "r" }])
+[msending {"jsonrpc":"2.0","id":174,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":21},"end":{"line":2,
+[m"character":21}},"replacement":"r"}]}}
+[mgot some line: {"id":174,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m26 }, end: Position { line: 2, character: 26 } }]
+[msending {"jsonrpc":"2.0","id":175,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":22},"end":{"line":2,"character":22}}]}}
+[mgot some line: {"id":175,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 22 }, en
+[md: Position { line: 2, character: 22 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":176,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":22},"end":{"line":2,
+[m"character":22}},"replacement":" "}]}}
+[msending {"jsonrpc":"2.0","id":177,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":23},"end":{"line":2,"character":23}}]}}
+[mgot some line: {"id":176,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":177,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m27 }, end: Position { line: 2, character: 27 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 23 }, en
+[md: Position { line: 2, character: 23 } }, replacement: "j" }])
+[msending {"jsonrpc":"2.0","id":178,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":23},"end":{"line":2,
+[m"character":23}},"replacement":"j"}]}}
+[mgot some line: {"id":178,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m28 }, end: Position { line: 2, character: 28 } }]
+[msending {"jsonrpc":"2.0","id":179,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":24},"end":{"line":2,"character":24}}]}}
+[mgot some line: {"id":179,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 24 }, en
+[md: Position { line: 2, character: 24 } }, replacement: "e" }])
+[msending {"jsonrpc":"2.0","id":180,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":24},"end":{"line":2,
+[m"character":24}},"replacement":"e"}]}}
+[mgot some line: {"id":180,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m29 }, end: Position { line: 2, character: 29 } }]
+[msending {"jsonrpc":"2.0","id":181,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":25},"end":{"line":2,"character":25}}]}}
+[mgot some line: {"id":181,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 26 }, en
+[md: Position { line: 2, character: 26 } }, replacement: "t" }])
+[msending {"jsonrpc":"2.0","id":182,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":26},"end":{"line":2,
+[m"character":26}},"replacement":"t"}]}}
+[mgot some line: {"id":182,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m30 }, end: Position { line: 2, character: 30 } }]
+[msending {"jsonrpc":"2.0","id":183,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":26},"end":{"line":2,"character":26}}]}}
+[mgot some line: {"id":183,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 26 }, en
+[md: Position { line: 2, character: 26 } }, replacement: "z" }])
+[msending {"jsonrpc":"2.0","id":184,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":26},"end":{"line":2,
+[m"character":26}},"replacement":"z"}]}}
+[mgot some line: {"id":184,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m31 }, end: Position { line: 2, character: 31 } }]
+[msending {"jsonrpc":"2.0","id":185,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":27},"end":{"line":2,"character":27}}]}}
+[mgot some line: {"id":185,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 28 }, en
+[md: Position { line: 2, character: 28 } }, replacement: "t" }])
+[msending {"jsonrpc":"2.0","id":186,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":28},"end":{"line":2,
+[m"character":28}},"replacement":"t"}]}}
+[mgot some line: {"id":186,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m32 }, end: Position { line: 2, character: 32 } }]
+[msending {"jsonrpc":"2.0","id":187,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":28},"end":{"line":2,"character":28}}]}}
+[mgot some line: {"id":187,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 28 }, en
+[md: Position { line: 2, character: 28 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":188,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":28},"end":{"line":2,
+[m"character":28}},"replacement":" "}]}}
+[mgot some line: {"id":188,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m33 }, end: Position { line: 2, character: 33 } }]
+[msending {"jsonrpc":"2.0","id":189,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":29},"end":{"line":2,"character":29}}]}}
+[mgot some line: {"id":189,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 29 }, en
+[md: Position { line: 2, character: 29 } }, replacement: "r" }])
+[msending {"jsonrpc":"2.0","id":190,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":29},"end":{"line":2,
+[m"character":29}},"replacement":"r"}]}}
+[mgot some line: {"id":190,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m34 }, end: Position { line: 2, character: 34 } }]
+[msending {"jsonrpc":"2.0","id":191,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":30},"end":{"line":2,"character":30}}]}}
+[mgot some line: {"id":191,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 30 }, en
+[md: Position { line: 2, character: 30 } }, replacement: "i" }])
+[msending {"jsonrpc":"2.0","id":192,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":30},"end":{"line":2,
+[m"character":30}},"replacement":"i"}]}}
+[mgot some line: {"id":192,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m35 }, end: Position { line: 2, character: 35 } }]
+[msending {"jsonrpc":"2.0","id":193,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":31},"end":{"line":2,"character":31}}]}}
+[mgot some line: {"id":193,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 31 }, en
+[md: Position { line: 2, character: 31 } }, replacement: "c" }])
+[msending {"jsonrpc":"2.0","id":194,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":31},"end":{"line":2,
+[m"character":31}},"replacement":"c"}]}}
+[mgot some line: {"id":194,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m36 }, end: Position { line: 2, character: 36 } }]
+[msending {"jsonrpc":"2.0","id":195,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":32},"end":{"line":2,"character":32}}]}}
+[mgot some line: {"id":195,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 32 }, en
+[md: Position { line: 2, character: 32 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":196,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":32},"end":{"line":2,
+[m"character":32}},"replacement":"h"}]}}
+[msending {"jsonrpc":"2.0","id":197,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":33},"end":{"line":2,"character":33}}]}}
+[mgot some line: {"id":196,"jsonrpc":"2.0","result":"success"}
+[mgot some line: {"id":197,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m37 }, end: Position { line: 2, character: 37 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 34 }, en
+[md: Position { line: 2, character: 34 } }, replacement: "t" }])
+[msending {"jsonrpc":"2.0","id":198,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":34},"end":{"line":2,
+[m"character":34}},"replacement":"t"}]}}
+[mgot some line: {"id":198,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m38 }, end: Position { line: 2, character: 38 } }]
+[msending {"jsonrpc":"2.0","id":199,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":34},"end":{"line":2,"character":34}}]}}
+[mgot some line: {"id":199,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 34 }, en
+[md: Position { line: 2, character: 34 } }, replacement: "i" }])
+[msending {"jsonrpc":"2.0","id":200,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":34},"end":{"line":2,
+[m"character":34}},"replacement":"i"}]}}
+[mgot some line: {"id":200,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m39 }, end: Position { line: 2, character: 39 } }]
+[msending {"jsonrpc":"2.0","id":201,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":35},"end":{"line":2,"character":35}}]}}
+[mgot some line: {"id":201,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 36 }, en
+[md: Position { line: 2, character: 36 } }, replacement: "t" }])
+[msending {"jsonrpc":"2.0","id":202,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":36},"end":{"line":2,
+[m"character":36}},"replacement":"t"}]}}
+[mgot some line: {"id":202,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m40 }, end: Position { line: 2, character: 40 } }]
+[msending {"jsonrpc":"2.0","id":203,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":36},"end":{"line":2,"character":36}}]}}
+[mgot some line: {"id":203,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 36 }, en
+[md: Position { line: 2, character: 36 } }, replacement: "g" }])
+[msending {"jsonrpc":"2.0","id":204,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":36},"end":{"line":2,
+[m"character":36}},"replacement":"g"}]}}
+[mgot some line: {"id":204,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m41 }, end: Position { line: 2, character: 41 } }]
+[msending {"jsonrpc":"2.0","id":205,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":37},"end":{"line":2,"character":37}}]}}
+[mgot some line: {"id":205,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":206,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":37},"end":{"line":2,"character":37}}]}}
+[mgot some line: {"id":206,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 6 }, end
+[m: Position { line: 2, character: 37 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":207,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":6},"end":{"line":2,"
+[mcharacter":37}},"replacement":""}]}}
+[mgot some line: {"id":207,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m10 }, end: Position { line: 2, character: 10 } }]
+[msending {"jsonrpc":"2.0","id":208,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":208,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":209,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":209,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":210,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":210,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":211,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":5},"end":{"line":2,"character":5}}]}}
+[mgot some line: {"id":211,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":212,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":4},"end":{"line":2,"character":4}}]}}
+[mgot some line: {"id":212,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":213,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}}]}}
+[mgot some line: {"id":213,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":214,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":214,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 3 }, end
+[m: Position { line: 2, character: 7 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":215,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":3},"end":{"line":2,"
+[mcharacter":7}},"replacement":""}]}}
+[mgot some line: {"id":215,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m6 }, end: Position { line: 2, character: 6 } }]
+[msending {"jsonrpc":"2.0","id":216,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":3}}]}}
+[mgot some line: {"id":216,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 3 }, end
+[m: Position { line: 2, character: 3 } }, replacement: "o" }])
+[msending {"jsonrpc":"2.0","id":217,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":3},"end":{"line":2,"
+[mcharacter":3}},"replacement":"o"}]}}
+[mgot some line: {"id":217,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m7 }, end: Position { line: 2, character: 7 } }]
+[msending {"jsonrpc":"2.0","id":218,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":4},"end":{"line":2,"character":4}}]}}
+[mgot some line: {"id":218,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 4 }, end
+[m: Position { line: 2, character: 4 } }, replacement: "k" }])
+[msending {"jsonrpc":"2.0","id":219,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":4},"end":{"line":2,"
+[mcharacter":4}},"replacement":"k"}]}}
+[mgot some line: {"id":219,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m8 }, end: Position { line: 2, character: 8 } }]
+[msending {"jsonrpc":"2.0","id":220,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":5},"end":{"line":2,"character":5}}]}}
+[mgot some line: {"id":220,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 5 }, end
+[m: Position { line: 2, character: 5 } }, replacement: "," }])
+[msending {"jsonrpc":"2.0","id":221,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":5},"end":{"line":2,"
+[mcharacter":5}},"replacement":","}]}}
+[mgot some line: {"id":221,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m9 }, end: Position { line: 2, character: 9 } }]
+[msending {"jsonrpc":"2.0","id":222,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":6},"end":{"line":2,"character":6}}]}}
+[mgot some line: {"id":222,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 7 }, end
+[m: Position { line: 2, character: 7 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":223,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":7},"end":{"line":2,"
+[mcharacter":7}},"replacement":" "}]}}
+[mgot some line: {"id":223,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m10 }, end: Position { line: 2, character: 10 } }]
+[msending {"jsonrpc":"2.0","id":224,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":7},"end":{"line":2,"character":7}}]}}
+[mgot some line: {"id":224,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 7 }, end
+[m: Position { line: 2, character: 7 } }, replacement: "d" }])
+[msending {"jsonrpc":"2.0","id":225,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":7},"end":{"line":2,"
+[mcharacter":7}},"replacement":"d"}]}}
+[mgot some line: {"id":225,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m11 }, end: Position { line: 2, character: 11 } }]
+[msending {"jsonrpc":"2.0","id":226,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":8},"end":{"line":2,"character":8}}]}}
+[mgot some line: {"id":226,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 8 }, end
+[m: Position { line: 2, character: 8 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":227,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":8},"end":{"line":2,"
+[mcharacter":8}},"replacement":"a"}]}}
+[mgot some line: {"id":227,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m12 }, end: Position { line: 2, character: 12 } }]
+[msending {"jsonrpc":"2.0","id":228,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":9},"end":{"line":2,"character":9}}]}}
+[mgot some line: {"id":228,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 9 }, end
+[m: Position { line: 2, character: 9 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":229,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":9},"end":{"line":2,"
+[mcharacter":9}},"replacement":"s"}]}}
+[mgot some line: {"id":229,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m13 }, end: Position { line: 2, character: 13 } }]
+[msending {"jsonrpc":"2.0","id":230,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":10},"end":{"line":2,"character":10}}]}}
+[mgot some line: {"id":230,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 11 }, en
+[md: Position { line: 2, character: 11 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":231,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":11},"end":{"line":2,
+[m"character":11}},"replacement":" "}]}}
+[mgot some line: {"id":231,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m14 }, end: Position { line: 2, character: 14 } }]
+[msending {"jsonrpc":"2.0","id":232,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":11},"end":{"line":2,"character":11}}]}}
+[mgot some line: {"id":232,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 11 }, en
+[md: Position { line: 2, character: 11 } }, replacement: "is" }])
+[msending {"jsonrpc":"2.0","id":233,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":11},"end":{"line":2,
+[m"character":11}},"replacement":"is"}]}}
+[mgot some line: {"id":233,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m16 }, end: Position { line: 2, character: 16 } }]
+[msending {"jsonrpc":"2.0","id":234,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":13},"end":{"line":2,"character":13}}]}}
+[mgot some line: {"id":234,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 13 }, en
+[md: Position { line: 2, character: 13 } }, replacement: "t" }])
+[msending {"jsonrpc":"2.0","id":235,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":13},"end":{"line":2,
+[m"character":13}},"replacement":"t"}]}}
+[mgot some line: {"id":235,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m17 }, end: Position { line: 2, character: 17 } }]
+[msending {"jsonrpc":"2.0","id":236,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":14},"end":{"line":2,"character":14}}]}}
+[mgot some line: {"id":236,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 15 }, en
+[md: Position { line: 2, character: 15 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":237,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":15},"end":{"line":2,
+[m"character":15}},"replacement":" "}]}}
+[mgot some line: {"id":237,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m18 }, end: Position { line: 2, character: 18 } }]
+[msending {"jsonrpc":"2.0","id":238,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":15},"end":{"line":2,"character":15}}]}}
+[mgot some line: {"id":238,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 15 }, en
+[md: Position { line: 2, character: 15 } }, replacement: "b" }])
+[msending {"jsonrpc":"2.0","id":239,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":15},"end":{"line":2,
+[m"character":15}},"replacement":"b"}]}}
+[mgot some line: {"id":239,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m19 }, end: Position { line: 2, character: 19 } }]
+[msending {"jsonrpc":"2.0","id":240,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":16},"end":{"line":2,"character":16}}]}}
+[mgot some line: {"id":240,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 16 }, en
+[md: Position { line: 2, character: 16 } }, replacement: "i" }])
+[msending {"jsonrpc":"2.0","id":241,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":16},"end":{"line":2,
+[m"character":16}},"replacement":"i"}]}}
+[mgot some line: {"id":241,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m20 }, end: Position { line: 2, character: 20 } }]
+[msending {"jsonrpc":"2.0","id":242,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":17},"end":{"line":2,"character":17}}]}}
+[mgot some line: {"id":242,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 17 }, en
+[md: Position { line: 2, character: 17 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":243,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":17},"end":{"line":2,
+[m"character":17}},"replacement":"s"}]}}
+[mgot some line: {"id":243,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m21 }, end: Position { line: 2, character: 21 } }]
+[msending {"jsonrpc":"2.0","id":244,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":18},"end":{"line":2,"character":18}}]}}
+[mgot some line: {"id":244,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 18 }, en
+[md: Position { line: 2, character: 18 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":245,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":18},"end":{"line":2,
+[m"character":18}},"replacement":"h"}]}}
+[mgot some line: {"id":245,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m22 }, end: Position { line: 2, character: 22 } }]
+[msending {"jsonrpc":"2.0","id":246,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":19},"end":{"line":2,"character":19}}]}}
+[mgot some line: {"id":246,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 19 }, en
+[md: Position { line: 2, character: 19 } }, replacement: "e" }])
+[msending {"jsonrpc":"2.0","id":247,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":19},"end":{"line":2,
+[m"character":19}},"replacement":"e"}]}}
+[mgot some line: {"id":247,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m23 }, end: Position { line: 2, character: 23 } }]
+[msending {"jsonrpc":"2.0","id":248,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":20},"end":{"line":2,"character":20}}]}}
+[mgot some line: {"id":248,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 20 }, en
+[md: Position { line: 2, character: 20 } }, replacement: "r " }])
+[msending {"jsonrpc":"2.0","id":249,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":20},"end":{"line":2,
+[m"character":20}},"replacement":"r "}]}}
+[mgot some line: {"id":249,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m25 }, end: Position { line: 2, character: 25 } }]
+[msending {"jsonrpc":"2.0","id":250,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":22},"end":{"line":2,"character":22}}]}}
+[mgot some line: {"id":250,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 22 }, en
+[md: Position { line: 2, character: 22 } }, replacement: "v" }])
+[msending {"jsonrpc":"2.0","id":251,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":22},"end":{"line":2,
+[m"character":22}},"replacement":"v"}]}}
+[mgot some line: {"id":251,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m26 }, end: Position { line: 2, character: 26 } }]
+[msending {"jsonrpc":"2.0","id":252,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":23},"end":{"line":2,"character":23}}]}}
+[mgot some line: {"id":252,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 23 }, en
+[md: Position { line: 2, character: 23 } }, replacement: "er" }])
+[msending {"jsonrpc":"2.0","id":253,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":23},"end":{"line":2,
+[m"character":23}},"replacement":"er"}]}}
+[mgot some line: {"id":253,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m28 }, end: Position { line: 2, character: 28 } }]
+[msending {"jsonrpc":"2.0","id":254,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":25},"end":{"line":2,"character":25}}]}}
+[mgot some line: {"id":254,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 25 }, en
+[md: Position { line: 2, character: 25 } }, replacement: "n" }])
+[msending {"jsonrpc":"2.0","id":255,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":25},"end":{"line":2,
+[m"character":25}},"replacement":"n"}]}}
+[mgot some line: {"id":255,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m29 }, end: Position { line: 2, character: 29 } }]
+[msending {"jsonrpc":"2.0","id":256,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":26},"end":{"line":2,"character":26}}]}}
+[mgot some line: {"id":256,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 26 }, en
+[md: Position { line: 2, character: 26 } }, replacement: "a" }])
+[msending {"jsonrpc":"2.0","id":257,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":26},"end":{"line":2,
+[m"character":26}},"replacement":"a"}]}}
+[mgot some line: {"id":257,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m30 }, end: Position { line: 2, character: 30 } }]
+[msending {"jsonrpc":"2.0","id":258,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":27},"end":{"line":2,"character":27}}]}}
+[mgot some line: {"id":258,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 27 }, en
+[md: Position { line: 2, character: 27 } }, replacement: "c" }])
+[msending {"jsonrpc":"2.0","id":259,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":27},"end":{"line":2,
+[m"character":27}},"replacement":"c"}]}}
+[mgot some line: {"id":259,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m31 }, end: Position { line: 2, character: 31 } }]
+[msending {"jsonrpc":"2.0","id":260,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":28},"end":{"line":2,"character":28}}]}}
+[mgot some line: {"id":260,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 28 }, en
+[md: Position { line: 2, character: 28 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":261,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":28},"end":{"line":2,
+[m"character":28}},"replacement":"h"}]}}
+[mgot some line: {"id":261,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m32 }, end: Position { line: 2, character: 32 } }]
+[msending {"jsonrpc":"2.0","id":262,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":29},"end":{"line":2,"character":29}}]}}
+[mgot some line: {"id":262,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 28 }, en
+[md: Position { line: 2, character: 29 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":263,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":28},"end":{"line":2,
+[m"character":29}},"replacement":""}]}}
+[mgot some line: {"id":263,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m31 }, end: Position { line: 2, character: 31 } }]
+[msending {"jsonrpc":"2.0","id":264,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":28},"end":{"line":2,"character":28}}]}}
+[mgot some line: {"id":264,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 28 }, en
+[md: Position { line: 2, character: 28 } }, replacement: "l" }])
+[msending {"jsonrpc":"2.0","id":265,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":28},"end":{"line":2,
+[m"character":28}},"replacement":"l"}]}}
+[mgot some line: {"id":265,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m32 }, end: Position { line: 2, character: 32 } }]
+[msending {"jsonrpc":"2.0","id":266,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":29},"end":{"line":2,"character":29}}]}}
+[mgot some line: {"id":266,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 29 }, en
+[md: Position { line: 2, character: 29 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":267,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":29},"end":{"line":2,
+[m"character":29}},"replacement":"s"}]}}
+[mgot some line: {"id":267,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m33 }, end: Position { line: 2, character: 33 } }]
+[msending {"jsonrpc":"2.0","id":268,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":30},"end":{"line":2,"character":30}}]}}
+[mgot some line: {"id":268,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 30 }, en
+[md: Position { line: 2, character: 30 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":269,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":30},"end":{"line":2,
+[m"character":30}},"replacement":"s"}]}}
+[mgot some line: {"id":269,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m34 }, end: Position { line: 2, character: 34 } }]
+[msending {"jsonrpc":"2.0","id":270,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":31},"end":{"line":2,"character":31}}]}}
+[mgot some line: {"id":270,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 31 }, en
+[md: Position { line: 2, character: 31 } }, replacement: "i" }])
+[msending {"jsonrpc":"2.0","id":271,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":31},"end":{"line":2,
+[m"character":31}},"replacement":"i"}]}}
+[mgot some line: {"id":271,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m35 }, end: Position { line: 2, character: 35 } }]
+[msending {"jsonrpc":"2.0","id":272,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":32},"end":{"line":2,"character":32}}]}}
+[mgot some line: {"id":272,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 32 }, en
+[md: Position { line: 2, character: 32 } }, replacement: "g" }])
+[msending {"jsonrpc":"2.0","id":273,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":32},"end":{"line":2,
+[m"character":32}},"replacement":"g"}]}}
+[mgot some line: {"id":273,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m36 }, end: Position { line: 2, character: 36 } }]
+[msending {"jsonrpc":"2.0","id":274,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":33},"end":{"line":2,"character":33}}]}}
+[mgot some line: {"id":274,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 34 }, en
+[md: Position { line: 2, character: 34 } }, replacement: " " }])
+[msending {"jsonrpc":"2.0","id":275,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":34},"end":{"line":2,
+[m"character":34}},"replacement":" "}]}}
+[mgot some line: {"id":275,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m37 }, end: Position { line: 2, character: 37 } }]
+[msending {"jsonrpc":"2.0","id":276,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":34},"end":{"line":2,"character":34}}]}}
+[mgot some line: {"id":276,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 34 }, en
+[md: Position { line: 2, character: 35 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":277,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":34},"end":{"line":2,
+[m"character":35}},"replacement":""}]}}
+[mgot some line: {"id":277,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m36 }, end: Position { line: 2, character: 36 } }]
+[msending {"jsonrpc":"2.0","id":278,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":33},"end":{"line":2,"character":33}}]}}
+[mgot some line: {"id":278,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 32 }, en
+[md: Position { line: 2, character: 33 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":279,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":32},"end":{"line":2,
+[m"character":33}},"replacement":""}]}}
+[mgot some line: {"id":279,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m35 }, end: Position { line: 2, character: 35 } }]
+[msending {"jsonrpc":"2.0","id":280,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":32},"end":{"line":2,"character":32}}]}}
+[mgot some line: {"id":280,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 31 }, en
+[md: Position { line: 2, character: 32 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":281,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":31},"end":{"line":2,
+[m"character":32}},"replacement":""}]}}
+[mgot some line: {"id":281,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m34 }, end: Position { line: 2, character: 34 } }]
+[msending {"jsonrpc":"2.0","id":282,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":31},"end":{"line":2,"character":31}}]}}
+[mgot some line: {"id":282,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 30 }, en
+[md: Position { line: 2, character: 31 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":283,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":30},"end":{"line":2,
+[m"character":31}},"replacement":""}]}}
+[mgot some line: {"id":283,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m33 }, end: Position { line: 2, character: 33 } }]
+[msending {"jsonrpc":"2.0","id":284,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":30},"end":{"line":2,"character":30}}]}}
+[mgot some line: {"id":284,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 29 }, en
+[md: Position { line: 2, character: 30 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":285,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":29},"end":{"line":2,
+[m"character":30}},"replacement":""}]}}
+[mgot some line: {"id":285,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m32 }, end: Position { line: 2, character: 32 } }]
+[msending {"jsonrpc":"2.0","id":286,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":29},"end":{"line":2,"character":29}}]}}
+[mgot some line: {"id":286,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 28 }, en
+[md: Position { line: 2, character: 29 } }, replacement: "" }])
+[msending {"jsonrpc":"2.0","id":287,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":28},"end":{"line":2,
+[m"character":29}},"replacement":""}]}}
+[mgot some line: {"id":287,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":288,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":28},"end":{"line":2,"character":28}}]}}
+[mgot some line: {"id":288,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m31 }, end: Position { line: 2, character: 31 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 28 }, en
+[md: Position { line: 2, character: 28 } }, replacement: "h" }])
+[msending {"jsonrpc":"2.0","id":289,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":28},"end":{"line":2,
+[m"character":28}},"replacement":"h"}]}}
+[mgot some line: {"id":289,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":290,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":29},"end":{"line":2,"character":29}}]}}
+[mgot some line: {"id":290,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m32 }, end: Position { line: 2, character: 32 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 29 }, en
+[md: Position { line: 2, character: 29 } }, replacement: "l" }])
+[msending {"jsonrpc":"2.0","id":291,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":29},"end":{"line":2,
+[m"character":29}},"replacement":"l"}]}}
+[mgot some line: {"id":291,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m33 }, end: Position { line: 2, character: 33 } }]
+[msending {"jsonrpc":"2.0","id":292,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":30},"end":{"line":2,"character":30}}]}}
+[mgot some line: {"id":292,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 30 }, en
+[md: Position { line: 2, character: 30 } }, replacement: "ä" }])
+[msending {"jsonrpc":"2.0","id":293,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":30},"end":{"line":2,
+[m"character":30}},"replacement":"ä"}]}}
+[mgot some line: {"id":293,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":294,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":31},"end":{"line":2,"character":31}}]}}
+[mgot some line: {"id":294,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m34 }, end: Position { line: 2, character: 34 } }]
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 31 }, en
+[md: Position { line: 2, character: 31 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":295,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":31},"end":{"line":2,
+[m"character":31}},"replacement":"s"}]}}
+[mgot some line: {"id":295,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m35 }, end: Position { line: 2, character: 35 } }]
+[msending {"jsonrpc":"2.0","id":296,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":32},"end":{"line":2,"character":32}}]}}
+[mgot some line: {"id":296,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 32 }, en
+[md: Position { line: 2, character: 32 } }, replacement: "s" }])
+[msending {"jsonrpc":"2.0","id":297,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":32},"end":{"line":2,
+[m"character":32}},"replacement":"s"}]}}
+[mgot some line: {"id":297,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m36 }, end: Position { line: 2, character: 36 } }]
+[msending {"jsonrpc":"2.0","id":298,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":33},"end":{"line":2,"character":33}}]}}
+[mgot some line: {"id":298,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 33 }, en
+[md: Position { line: 2, character: 33 } }, replacement: "i" }])
+[msending {"jsonrpc":"2.0","id":299,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":33},"end":{"line":2,
+[m"character":33}},"replacement":"i"}]}}
+[mgot some line: {"id":299,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m37 }, end: Position { line: 2, character: 37 } }]
+[msending {"jsonrpc":"2.0","id":300,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":34},"end":{"line":2,"character":34}}]}}
+[mgot some line: {"id":300,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 34 }, en
+[md: Position { line: 2, character: 34 } }, replacement: "g" }])
+[msending {"jsonrpc":"2.0","id":301,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":34},"end":{"line":2,
+[m"character":34}},"replacement":"g"}]}}
+[mgot some line: {"id":301,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m38 }, end: Position { line: 2, character: 38 } }]
+[msending {"jsonrpc":"2.0","id":302,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":35},"end":{"line":2,"character":35}}]}}
+[mgot some line: {"id":302,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 35 }, en
+[md: Position { line: 2, character: 35 } }, replacement: "ba" }])
+[msending {"jsonrpc":"2.0","id":303,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":35},"end":{"line":2,
+[m"character":35}},"replacement":"ba"}]}}
+[mgot some line: {"id":303,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m40 }, end: Position { line: 2, character: 40 } }]
+[msending {"jsonrpc":"2.0","id":304,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":37},"end":{"line":2,"character":37}}]}}
+[mgot some line: {"id":304,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 37 }, en
+[md: Position { line: 2, character: 37 } }, replacement: "r" }])
+[msending {"jsonrpc":"2.0","id":305,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":37},"end":{"line":2,
+[m"character":37}},"replacement":"r"}]}}
+[mgot some line: {"id":305,"jsonrpc":"2.0","result":"success"}
+[mgot cursor message for user Some("salmiak"), ranges: [Range { start: Position { line: 2, character: 
+[m41 }, end: Position { line: 2, character: 41 } }]
+[msending {"jsonrpc":"2.0","id":306,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":38},"end":{"line":2,"character":38}}]}}
+[mgot some line: {"id":306,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":307,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":38},"end":{"line":2,"character":38}}]}}
+[mgot some line: {"id":307,"jsonrpc":"2.0","result":"success"}
+[mdelta: EditorTextDelta([EditorTextOp { range: Range { start: Position { line: 2, character: 3 }, end
+[m: Position { line: 2, character: 23 } }, replacement: "g" }, EditorTextOp { range: Range { start: Po
+[msition { line: 2, character: 24 }, end: Position { line: 2, character: 28 } }, replacement: "" }, Ed
+[mitorTextOp { range: Range { start: Position { line: 2, character: 29 }, end: Position { line: 2, cha
+[mracter: 38 } }, replacement: "t" }])
+[msending {"jsonrpc":"2.0","id":308,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":3},"end":{"line":2,"
+[mcharacter":23}},"replacement":"g"}]}}
+[msending {"jsonrpc":"2.0","id":309,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":5},"end":{"line":2,"
+[mcharacter":47}},"replacement":""}]}}
+[msending {"jsonrpc":"2.0","id":310,"method":"edit","params":{"uri":"file:///home/salmiak/dev/kak-ethe
+[mrsync/test2/file","revision":0,"delta":[{"range":{"start":{"line":2,"character":6},"end":{"line":2,"
+[mcharacter":61}},"replacement":"t"}]}}
+[mgot some line: {"id":308,"jsonrpc":"2.0","result":"success"}
+[msending {"jsonrpc":"2.0","id":311,"method":"cursor","params":{"uri":"file:///home/salmiak/dev/kak-et
+[mhersync/test2/file","ranges":[{"start":{"line":2,"character":3},"end":{"line":2,"character":6}}]}}
+[mError: Broken pipe (os error 32)
+[m                                                                                                    

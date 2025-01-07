@@ -475,7 +475,7 @@ fn escape_keys(s: &str) -> String {
 }
 
 fn escape_single_quotes(s: &str) -> String {
-    s.replace('\'', "\\'")
+    s.replace('\'', "''")
 }
 
 fn first_invalid_position(doc: &str) -> Position {
