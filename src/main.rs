@@ -1,6 +1,6 @@
 use anyhow::anyhow;
 use itertools::Itertools;
-use log::{debug, error, info, trace};
+use log::{debug, error, info, trace, warn};
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::io::LineWriter;
@@ -14,6 +14,7 @@ use std::{
     thread,
 };
 use unicode_segmentation::UnicodeSegmentation;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
@@ -662,6 +663,25 @@ fn apply_delta_to_string(prev_content: &str, delta: &EditorTextDelta) -> String 
     new_content
 }
 
+#[derive(Debug)]
+struct BufferState {
+    editor_revision: usize,
+    daemon_revision: usize,
+    buffer_name: String,
+    prev_content: String,
+}
+
+impl BufferState {
+    fn new(buffer_name: String, initial_content: String) -> Self {
+        Self {
+            editor_revision: 0,
+            daemon_revision: 0,
+            buffer_name,
+            prev_content: initial_content,
+        }
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     env_logger::init();
 
@@ -676,14 +696,9 @@ fn main() -> anyhow::Result<()> {
     thread::spawn(|| listen_to_daemon_messages(stream_copy_2, sender_copy));
 
     let mut daemon_connection = DaemonConnection::new(stream);
-    let mut prev_content = "".to_string();
-    let mut editor_revision = 0;
-    let mut daemon_revision = 0;
-
     let mut kak_session = "".to_string();
-
-    let mut current_buffer_name = "".to_string();
-    let mut current_file_path = "".to_string();
+    
+    let mut buffer_states: HashMap<String, BufferState> = HashMap::new();
 
     loop {
         match reciever.recv()? {
@@ -691,17 +706,25 @@ fn main() -> anyhow::Result<()> {
                 file_path,
                 new_content,
             }) => {
-                let delta = EditorTextDelta::from_diff(&prev_content, &new_content);
+                let buffer_state = match buffer_states.get_mut(&file_path) {
+                    Some(state) => state,
+                    None => {
+                        warn!("received change for unknown buffer: {}", file_path);
+                        continue;
+                    }
+                };
+
+                let delta = EditorTextDelta::from_diff(&buffer_state.prev_content, &new_content);
                 debug!("delta: {delta:?}");
-                for edit in delta.sequential_ops(&prev_content) {
+                for edit in delta.sequential_ops(&buffer_state.prev_content) {
                     daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
                         delta: EditorTextDelta(vec![edit]),
                         uri: "file://".to_owned() + &file_path,
-                        revision: daemon_revision,
+                        revision: buffer_state.daemon_revision,
                     })?;
-                    editor_revision += 1;
+                    buffer_state.editor_revision += 1;
                 }
-                prev_content = new_content;
+                buffer_state.prev_content = new_content;
             }
             Message::FromEditor(MessageFromEditor::BufferCreated {
                 file_path,
@@ -711,9 +734,11 @@ fn main() -> anyhow::Result<()> {
                 daemon_connection.send(EditorProtocolMessageFromEditor::Open {
                     uri: "file://".to_owned() + &file_path,
                 })?;
-                prev_content = initial_content;
-                current_buffer_name = buffer_name;
-                current_file_path = file_path;
+                
+                buffer_states.insert(
+                    file_path.clone(),
+                    BufferState::new(buffer_name, initial_content)
+                );
             }
             Message::FromEditor(MessageFromEditor::SessionStarted { session_name }) => {
                 kak_session = session_name;
@@ -730,36 +755,36 @@ fn main() -> anyhow::Result<()> {
                 revision,
                 delta,
             }) => {
-                if revision != editor_revision {
+                let file_path = match uri.strip_prefix("file://") {
+                    Some(path) => path,
+                    None => {
+                        warn!("invalid uri: {}", uri);
+                        continue;
+                    }
+                };
+                
+                let buffer_state = match buffer_states.get_mut(file_path) {
+                    Some(state) => state,
+                    None => {
+                        warn!("received edit for unknown buffer: {}", file_path);
+                        continue;
+                    }
+                };
+
+                if revision != buffer_state.editor_revision {
                     debug!("we've already edited the document further since this revision, skipping");
                     continue;
                 }
 
-                daemon_revision += 1;
+                buffer_state.daemon_revision += 1;
 
-                apply_delta_to_buffer(&prev_content, &kak_session, &current_buffer_name, &delta)?;
-                prev_content = apply_delta_to_string(&prev_content, &delta);
-
-                // if !prev_content.ends_with("\n") {
-                //     // Kakoune always implicitly adds a newline to the end of the file.
-                //     // If the edits in the delta don't add a newline, the other editors
-                //     // will get out of sync if we don't tell them about the newline.
-                //     let doc_end = first_invalid_position(&prev_content);
-                //     daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
-                //         uri: "file://".to_owned() + &current_file_path,
-                //         revision: daemon_revision,
-                //         delta: EditorTextDelta(vec![EditorTextOp {
-                //             range: Range {
-                //                 start: doc_end,
-                //                 end: doc_end,
-                //             },
-                //             replacement: "\n".to_string(),
-                //         }]),
-                //     })?;
-                //     editor_revision += 1;
-
-                //     prev_content += "\n";
-                // }
+                apply_delta_to_buffer(
+                    &buffer_state.prev_content,
+                    &kak_session,
+                    &buffer_state.buffer_name,
+                    &delta
+                )?;
+                buffer_state.prev_content = apply_delta_to_string(&buffer_state.prev_content, &delta);
             }
             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
                 userid,
