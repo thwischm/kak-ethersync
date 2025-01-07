@@ -470,11 +470,11 @@ fn to_kak_range(r: &Range) -> String {
 }
 
 fn escape_keys(s: &str) -> String {
-    s.to_string() // TODO
+    s.replace('<', "<lt>")
 }
 
 fn escape_single_quotes(s: &str) -> String {
-    s.to_string() // TODO
+    s.replace('\'', "\\'")
 }
 
 fn first_invalid_position(doc: &str) -> Position {
