@@ -1,20 +1,19 @@
 use anyhow::anyhow;
 use itertools::Itertools;
-use log::{debug, error, info, trace, warn};
+use log::{debug, info, warn};
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::collections::HashMap;
 use std::io::{self};
-use std::process::{Command, Stdio};
-use std::sync::mpsc::Sender;
-use std::{
-    fs::File,
-    io::{BufRead, BufReader, Read, Write},
-    os::unix::net::UnixStream,
-    sync::mpsc,
-    thread,
-};
+use std::process::Stdio;
 use unicode_segmentation::UnicodeSegmentation;
+use bytes::{Buf, BytesMut};
+use tokio_util::codec::Decoder;
+use tokio::io::{AsyncRead, AsyncWriteExt};
+use tokio::net::unix::{self, pipe};
+use tokio_util::codec::LinesCodec;
+use tokio_stream::StreamExt;
+use tokio_util::codec::FramedRead;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
@@ -473,20 +472,6 @@ impl EditorConnection {
     }
 }
 
-fn send_commands_to_kakoune(session: &str, commands: &str) -> anyhow::Result<()> {
-    let mut child = Command::new("kak")
-        .args(["-p", session])
-        .stdin(Stdio::piped())
-        .spawn()?;
-    let stdin = child
-        .stdin
-        .as_mut()
-        .ok_or(anyhow!("couldn't open child stdin"))?;
-    stdin.write_all(commands.as_bytes())?;
-    child.wait()?;
-    Ok(())
-}
-
 fn apply_delta_to_string(prev_content: &str, delta: &EditorTextDelta) -> String {
     let mut new_content = String::new();
     let mut grapheme_iter = prev_content.graphemes(true);
@@ -563,125 +548,6 @@ impl BufferState {
         }
     }
 }
-
-// fn main() -> anyhow::Result<()> {
-//     env_logger::init();
-
-//     let socket_path = "/tmp/ethersync";
-//     let stream = UnixStream::connect(socket_path)?;
-//     let stream_copy_2 = stream.try_clone()?;
-
-//     let (sender, reciever) = mpsc::channel();
-//     let sender_copy = sender.clone();
-
-//     thread::spawn(|| listen_to_editor_messages(sender));
-//     thread::spawn(|| listen_to_daemon_messages(stream_copy_2, sender_copy));
-
-//     let mut daemon_connection = DaemonConnection::new(stream);
-//     let mut kak_session = "".to_string();
-
-//     let mut buffer_states: HashMap<String, BufferState> = HashMap::new();
-
-//     loop {
-//         match reciever.recv()? {
-//             Message::FromEditor(MessageFromEditor::BufferChanged {
-//                 file_path,
-//                 new_content,
-//             }) => {
-//                 let buffer_state = match buffer_states.get_mut(&file_path) {
-//                     Some(state) => state,
-//                     None => {
-//                         warn!("received change for unknown buffer: {}", file_path);
-//                         continue;
-//                     }
-//                 };
-
-//                 let delta = EditorTextDelta::from_diff(&buffer_state.prev_content, &new_content);
-//                 debug!("delta: {delta:?}");
-//                 for edit in delta.sequential_ops(&buffer_state.prev_content) {
-//                     daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
-//                         delta: EditorTextDelta(vec![edit]),
-//                         uri: "file://".to_owned() + &file_path,
-//                         revision: buffer_state.daemon_revision,
-//                     })?;
-//                     buffer_state.editor_revision += 1;
-//                 }
-//                 buffer_state.prev_content = new_content;
-//             }
-//             Message::FromEditor(MessageFromEditor::BufferCreated {
-//                 file_path,
-//                 buffer_name,
-//                 initial_content,
-//             }) => {
-//                 daemon_connection.send(EditorProtocolMessageFromEditor::Open {
-//                     uri: "file://".to_owned() + &file_path,
-//                 })?;
-
-//                 buffer_states.insert(
-//                     file_path.clone(),
-//                     BufferState::new(buffer_name, initial_content)
-//                 );
-//             }
-//             Message::FromEditor(MessageFromEditor::SessionStarted { session_name }) => {
-//                 kak_session = session_name;
-//             }
-//             Message::FromEditor(MessageFromEditor::CursorMoved { file_path, cursors }) => {
-//                 daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
-//                     uri: "file://".to_owned() + &file_path,
-//                     ranges: cursors,
-//                 })?;
-//             }
-
-//             Message::FromDaemon(EditorProtocolMessageToEditor::Edit {
-//                 uri,
-//                 revision,
-//                 delta,
-//             }) => {
-//                 let file_path = match uri.strip_prefix("file://") {
-//                     Some(path) => path,
-//                     None => {
-//                         warn!("invalid uri: {}", uri);
-//                         continue;
-//                     }
-//                 };
-
-//                 let buffer_state = match buffer_states.get_mut(file_path) {
-//                     Some(state) => state,
-//                     None => {
-//                         warn!("received edit for unknown buffer: {}", file_path);
-//                         continue;
-//                     }
-//                 };
-
-//                 if revision != buffer_state.editor_revision {
-//                     debug!("we've already edited the document further since this revision, skipping");
-//                     continue;
-//                 }
-
-//                 buffer_state.daemon_revision += 1;
-
-//                 apply_delta_to_buffer(
-//                     &buffer_state.prev_content,
-//                     &kak_session,
-//                     &buffer_state.buffer_name,
-//                     &delta
-//                 )?;
-//                 buffer_state.prev_content = apply_delta_to_string(&buffer_state.prev_content, &delta);
-//             }
-//             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
-//                 userid,
-//                 name,
-//                 uri,
-//                 ranges,
-//             }) => {
-//                 info!("got cursor message for user {name:?}, ranges: {ranges:?}")
-//             }
-//         }
-//     }
-// }
-//
-use bytes::{Buf, BytesMut};
-use tokio_util::codec::Decoder;
 
 struct EditorMessageDecoder;
 
@@ -793,7 +659,6 @@ impl ReopeningReceiver {
     }
 }
 
-use tokio::io::{AsyncRead, AsyncWriteExt};
 impl AsyncRead for ReopeningReceiver {
     fn poll_read(
         mut self: std::pin::Pin<&mut Self>,
@@ -825,11 +690,6 @@ impl AsyncRead for ReopeningReceiver {
         }
     }
 }
-use tokio::net::unix::{self, pipe};
-use tokio_util::codec::LinesCodec;
-
-use tokio_stream::StreamExt;
-use tokio_util::codec::FramedRead;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
