@@ -16,6 +16,7 @@ use std::{
     sync::mpsc,
     thread,
 };
+use tokio::net::tcp::OwnedWriteHalf;
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -32,6 +33,13 @@ enum EditorProtocolMessageToEditor {
         uri: DocumentUri,
         ranges: Vec<Range>,
     },
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(untagged)]
+enum JSONRPCFromDaemon {
+    Call(EditorProtocolMessageToEditor),
+    Result(JSONRPCResponse),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -573,27 +581,39 @@ enum Message {
 
 struct DaemonConnection {
     next_id: usize,
-    writer: LineWriter<UnixStream>,
+    write_end: unix::OwnedWriteHalf,
+    read_end: FramedRead<unix::OwnedReadHalf, LinesCodec>,
 }
 
 impl DaemonConnection {
-    fn new(socket: UnixStream) -> Self {
+    fn new(socket: tokio::net::UnixStream) -> Self {
+        let (read_end, write_end) = socket.into_split();
+        let read_end = FramedRead::new(read_end, LinesCodec::new());
         Self {
-            writer: LineWriter::new(socket),
+            read_end,
+            write_end,
             next_id: 0,
         }
     }
 
-    fn send(&mut self, payload: EditorProtocolMessageFromEditor) -> anyhow::Result<()> {
+    async fn send(&mut self, payload: EditorProtocolMessageFromEditor) -> anyhow::Result<()> {
         let message = serde_json::to_string(&JSONRPCFromEditor::Request {
             jsonrpc: JSONRPCVersionTag,
             id: self.next_id,
             payload,
         })?;
         debug!("sending {}", message);
-        writeln!(self.writer, "{}", message)?;
+        self.write_end.write_all(message.as_bytes()).await?;
         self.next_id += 1;
         Ok(())
+    }
+
+    async fn next_message(&mut self) -> Option<anyhow::Result<JSONRPCFromDaemon>> {
+        match self.read_end.next().await {
+            Some(Ok(line)) => Some(serde_json::from_str(&line).map_err(Into::into)),
+            Some(Err(e)) => Some(Err(e.into())),
+            None => None,
+        }
     }
 }
 
@@ -809,6 +829,18 @@ use tokio_util::codec::Decoder;
 
 struct EditorMessageDecoder;
 
+// Like the try! macro for Options, but it returs Ok(None) if expr is None.
+macro_rules! try_and_wrap_in_ok {
+    ($expr:expr $(,)?) => {
+        match $expr {
+            Some(val) => val,
+            None => {
+                return Ok(None);
+            }
+        }
+    };
+}
+
 impl Decoder for EditorMessageDecoder {
     type Item = MessageFromEditor;
     type Error = anyhow::Error;
@@ -816,47 +848,25 @@ impl Decoder for EditorMessageDecoder {
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         let str = std::str::from_utf8(src)?;
         let mut lines_and_offsets = str
-            .split_inclusive("\n")
+            // this instead of ".lines()" because we only want full lines
+            .split_inclusive('\n')
             .scan(("", 0), |(prev_line, offset), line| {
                 Some((line, *offset + prev_line.len()))
-            });
+            })
+            .filter_map(|(line, offset)| line.strip_suffix('\n').map(|line| (line, offset)));
 
-        let Some(message_type) = lines_and_offsets
-            .next()
-            .map(|(line, _)| line)
-            .and_then(|line| line.strip_suffix('\n'))
-        else {
-            return Ok(None);
-        };
+        let (message_type, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
 
         let message = match message_type {
             "BufferChanged" => {
-                let Some(file_path) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
-
-                let Some(new_content_length) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
-                let new_content_length: usize = new_content_length.parse()?;
+                let (file_path, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
+                let (new_content_length, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
 
                 let mut new_content = String::new();
-                for _ in 0..new_content_length {
-                    let Some((line, _)) = lines_and_offsets.next() else {
-                        return Ok(None);
-                    };
-                    if !line.ends_with("\n") {
-                        return Ok(None);
-                    }
+                for _ in 0..new_content_length.parse()? {
+                    let (line, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
                     new_content.push_str(line);
+                    new_content.push('\n');
                 }
 
                 MessageFromEditor::BufferChanged {
@@ -865,40 +875,15 @@ impl Decoder for EditorMessageDecoder {
                 }
             }
             "BufferCreated" => {
-                let Some(buffer_name) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
-
-                let Some(file_path) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
-
-                let Some(content_length) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
-                let content_length: usize = content_length.parse()?;
+                let (buffer_name, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
+                let (file_path, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
+                let (content_length, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
 
                 let mut content = String::new();
-                for _ in 0..content_length {
-                    let Some((line, _)) = lines_and_offsets.next() else {
-                        return Ok(None);
-                    };
-                    if !line.ends_with("\n") {
-                        return Ok(None);
-                    }
+                for _ in 0..content_length.parse()? {
+                    let (line, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
                     content.push_str(line);
+                    content.push('\n');
                 }
 
                 MessageFromEditor::BufferCreated {
@@ -908,37 +893,17 @@ impl Decoder for EditorMessageDecoder {
                 }
             }
             "SessionStarted" => {
-                let Some(session_name) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
+                let (session_name, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
                 MessageFromEditor::SessionStarted {
                     session_name: session_name.to_string(),
                 }
             }
             "CursorMoved" => {
-                let Some(file_path) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
-
-                let Some(cursors) = lines_and_offsets
-                    .next()
-                    .map(|(line, _)| line)
-                    .and_then(|line| line.strip_suffix('\n'))
-                else {
-                    return Ok(None);
-                };
-                let cursors = ranges_from_kak_selection_desc(cursors)?;
+                let (file_path, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
+                let (cursors, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
                 MessageFromEditor::CursorMoved {
                     file_path: file_path.to_string(),
-                    cursors,
+                    cursors: ranges_from_kak_selection_desc(cursors)?,
                 }
             }
             _ => return Err(anyhow!("unknown message type: {message_type}")),
@@ -972,6 +937,7 @@ impl ReopeningReceiver {
     }
 }
 
+use tokio::io::{AsyncRead, AsyncWriteExt};
 impl AsyncRead for ReopeningReceiver {
     fn poll_read(
         mut self: std::pin::Pin<&mut Self>,
@@ -1003,9 +969,7 @@ impl AsyncRead for ReopeningReceiver {
         }
     }
 }
-
-use tokio::io::{AsyncRead, AsyncReadExt};
-use tokio::net::unix::pipe;
+use tokio::net::unix::{self, pipe};
 use tokio_util::codec::LinesCodec;
 
 use tokio_stream::StreamExt;
@@ -1028,21 +992,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tokio::select! {
             line = daemon_reader.next() => {
                 let Some(line) = line else {
-                    log::error!("connection to daemon lost");
-                    break;
+                    return Err(anyhow!("connection to daemon lost"))?;
                 };
                 let line = line?;
-                println!("line from daemon: {line:?}");
+                let message: Result<JSONRPCFromDaemon, serde_json::Error> = serde_json::from_str(&line);
+                match message {
+                    Ok(message) => {
+                        println!("line from daemon: {message:?}");
+                    }
+                    Err(e) => error!("couldn't parse response from daemon: {e}"),
+                }
             }
             line = editor_reader.next() => {
                 let Some(line) = line else {
-                    log::error!("connection to editor lost");
-                    break;
+                    return Err(anyhow!("connection to editor lost"))?;
                 };
                 let line = line?;
                 println!("line from editor: {line:?}");
             }
         }
     }
-    Ok(())
 }
