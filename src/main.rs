@@ -803,9 +803,7 @@ impl BufferState {
 use bytes::{Buf, BytesMut};
 use tokio_util::codec::Decoder;
 
-struct EditorMessageDecoder {}
-
-const MAX: usize = 8 * 1024 * 1024;
+struct EditorMessageDecoder;
 
 impl Decoder for EditorMessageDecoder {
     type Item = MessageFromEditor;
@@ -983,7 +981,6 @@ impl AsyncRead for ReopeningReceiver {
 
 use tokio::io::{AsyncRead, AsyncReadExt};
 use tokio::net::unix::pipe;
-use tokio_util::codec::Framed;
 use tokio_util::codec::LinesCodec;
 
 use tokio_stream::StreamExt;
@@ -991,15 +988,36 @@ use tokio_util::codec::FramedRead;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Path to the FIFO
+    env_logger::init();
+
     let fifo_path = "/tmp/ethersync-kak-fifo";
 
-    let rx = ReopeningReceiver::new(fifo_path)?;
+    let editor_fifo = ReopeningReceiver::new(fifo_path)?;
 
-    let mut reader = FramedRead::new(rx, EditorMessageDecoder {});
-    while let Some(line) = reader.next().await {
-        let line = line?;
-        println!("{line:?}");
+    let mut editor_reader = FramedRead::new(editor_fifo, EditorMessageDecoder);
+
+    let socket_path = "/run/user/1000/ethersync";
+    let daemon_stream = tokio::net::UnixStream::connect(socket_path).await?;
+    let mut daemon_reader = FramedRead::new(daemon_stream, LinesCodec::new());
+    loop {
+        tokio::select! {
+            line = daemon_reader.next() => {
+                let Some(line) = line else {
+                    log::error!("connection to daemon lost");
+                    break;
+                };
+                let line = line?;
+                println!("line from daemon: {line:?}");
+            }
+            line = editor_reader.next() => {
+                let Some(line) = line else {
+                    log::error!("connection to editor lost");
+                    break;
+                };
+                let line = line?;
+                println!("line from editor: {line:?}");
+            }
+        }
     }
     Ok(())
 }
