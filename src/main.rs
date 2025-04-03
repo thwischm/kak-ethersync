@@ -1,9 +1,12 @@
 use anyhow::anyhow;
 use itertools::Itertools;
 use log::{debug, error, info, trace, warn};
+use serde::de::value::MapAccessDeserializer;
 use serde::{Deserialize, Serialize};
-use similar::{DiffOp, TextDiff};
-use std::io::LineWriter;
+use similar::{DiffOp, DiffableStr, TextDiff};
+use std::collections::HashMap;
+use std::io::{self, Cursor, LineWriter};
+use std::ops::Deref;
 use std::process::{Command, Stdio};
 use std::sync::mpsc::Sender;
 use std::{
@@ -14,7 +17,6 @@ use std::{
     thread,
 };
 use unicode_segmentation::UnicodeSegmentation;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
@@ -682,118 +684,322 @@ impl BufferState {
     }
 }
 
-fn main() -> anyhow::Result<()> {
-    env_logger::init();
+// fn main() -> anyhow::Result<()> {
+//     env_logger::init();
 
-    let socket_path = "/tmp/ethersync";
-    let stream = UnixStream::connect(socket_path)?;
-    let stream_copy_2 = stream.try_clone()?;
+//     let socket_path = "/tmp/ethersync";
+//     let stream = UnixStream::connect(socket_path)?;
+//     let stream_copy_2 = stream.try_clone()?;
 
-    let (sender, reciever) = mpsc::channel();
-    let sender_copy = sender.clone();
+//     let (sender, reciever) = mpsc::channel();
+//     let sender_copy = sender.clone();
 
-    thread::spawn(|| listen_to_editor_messages(sender));
-    thread::spawn(|| listen_to_daemon_messages(stream_copy_2, sender_copy));
+//     thread::spawn(|| listen_to_editor_messages(sender));
+//     thread::spawn(|| listen_to_daemon_messages(stream_copy_2, sender_copy));
 
-    let mut daemon_connection = DaemonConnection::new(stream);
-    let mut kak_session = "".to_string();
-    
-    let mut buffer_states: HashMap<String, BufferState> = HashMap::new();
+//     let mut daemon_connection = DaemonConnection::new(stream);
+//     let mut kak_session = "".to_string();
 
-    loop {
-        match reciever.recv()? {
-            Message::FromEditor(MessageFromEditor::BufferChanged {
-                file_path,
-                new_content,
-            }) => {
-                let buffer_state = match buffer_states.get_mut(&file_path) {
-                    Some(state) => state,
-                    None => {
-                        warn!("received change for unknown buffer: {}", file_path);
-                        continue;
-                    }
+//     let mut buffer_states: HashMap<String, BufferState> = HashMap::new();
+
+//     loop {
+//         match reciever.recv()? {
+//             Message::FromEditor(MessageFromEditor::BufferChanged {
+//                 file_path,
+//                 new_content,
+//             }) => {
+//                 let buffer_state = match buffer_states.get_mut(&file_path) {
+//                     Some(state) => state,
+//                     None => {
+//                         warn!("received change for unknown buffer: {}", file_path);
+//                         continue;
+//                     }
+//                 };
+
+//                 let delta = EditorTextDelta::from_diff(&buffer_state.prev_content, &new_content);
+//                 debug!("delta: {delta:?}");
+//                 for edit in delta.sequential_ops(&buffer_state.prev_content) {
+//                     daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
+//                         delta: EditorTextDelta(vec![edit]),
+//                         uri: "file://".to_owned() + &file_path,
+//                         revision: buffer_state.daemon_revision,
+//                     })?;
+//                     buffer_state.editor_revision += 1;
+//                 }
+//                 buffer_state.prev_content = new_content;
+//             }
+//             Message::FromEditor(MessageFromEditor::BufferCreated {
+//                 file_path,
+//                 buffer_name,
+//                 initial_content,
+//             }) => {
+//                 daemon_connection.send(EditorProtocolMessageFromEditor::Open {
+//                     uri: "file://".to_owned() + &file_path,
+//                 })?;
+
+//                 buffer_states.insert(
+//                     file_path.clone(),
+//                     BufferState::new(buffer_name, initial_content)
+//                 );
+//             }
+//             Message::FromEditor(MessageFromEditor::SessionStarted { session_name }) => {
+//                 kak_session = session_name;
+//             }
+//             Message::FromEditor(MessageFromEditor::CursorMoved { file_path, cursors }) => {
+//                 daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
+//                     uri: "file://".to_owned() + &file_path,
+//                     ranges: cursors,
+//                 })?;
+//             }
+
+//             Message::FromDaemon(EditorProtocolMessageToEditor::Edit {
+//                 uri,
+//                 revision,
+//                 delta,
+//             }) => {
+//                 let file_path = match uri.strip_prefix("file://") {
+//                     Some(path) => path,
+//                     None => {
+//                         warn!("invalid uri: {}", uri);
+//                         continue;
+//                     }
+//                 };
+
+//                 let buffer_state = match buffer_states.get_mut(file_path) {
+//                     Some(state) => state,
+//                     None => {
+//                         warn!("received edit for unknown buffer: {}", file_path);
+//                         continue;
+//                     }
+//                 };
+
+//                 if revision != buffer_state.editor_revision {
+//                     debug!("we've already edited the document further since this revision, skipping");
+//                     continue;
+//                 }
+
+//                 buffer_state.daemon_revision += 1;
+
+//                 apply_delta_to_buffer(
+//                     &buffer_state.prev_content,
+//                     &kak_session,
+//                     &buffer_state.buffer_name,
+//                     &delta
+//                 )?;
+//                 buffer_state.prev_content = apply_delta_to_string(&buffer_state.prev_content, &delta);
+//             }
+//             Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
+//                 userid,
+//                 name,
+//                 uri,
+//                 ranges,
+//             }) => {
+//                 info!("got cursor message for user {name:?}, ranges: {ranges:?}")
+//             }
+//         }
+//     }
+// }
+//
+use bytes::{Buf, BytesMut};
+use tokio_util::codec::Decoder;
+
+struct EditorMessageDecoder {}
+
+const MAX: usize = 8 * 1024 * 1024;
+
+impl Decoder for EditorMessageDecoder {
+    type Item = MessageFromEditor;
+    type Error = anyhow::Error;
+
+    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+        let str = std::str::from_utf8(src)?;
+        let mut lines_and_offsets = str
+            .split_inclusive("\n")
+            .scan(("", 0), |(prev_line, offset), line| {
+                Some((line, *offset + prev_line.len()))
+            });
+
+        let Some((message_type, _)) = lines_and_offsets.next() else {
+            return Ok(None);
+        };
+
+        let message = match message_type.trim_end() {
+            "BufferChanged" => {
+                let Some((file_path, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
+                };
+                let Some(file_path) = file_path.strip_suffix('\n') else {
+                    return Ok(None);
                 };
 
-                let delta = EditorTextDelta::from_diff(&buffer_state.prev_content, &new_content);
-                debug!("delta: {delta:?}");
-                for edit in delta.sequential_ops(&buffer_state.prev_content) {
-                    daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
-                        delta: EditorTextDelta(vec![edit]),
-                        uri: "file://".to_owned() + &file_path,
-                        revision: buffer_state.daemon_revision,
-                    })?;
-                    buffer_state.editor_revision += 1;
+                let Some((new_content_length, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
+                };
+                let new_content_length: usize = new_content_length.trim_end().parse()?;
+
+                let mut new_content = String::new();
+                for _ in 0..new_content_length {
+                    let Some((line, _)) = lines_and_offsets.next() else {
+                        return Ok(None);
+                    };
+                    if !line.ends_with("\n") {
+                        return Ok(None);
+                    }
+                    new_content.push_str(line);
                 }
-                buffer_state.prev_content = new_content;
-            }
-            Message::FromEditor(MessageFromEditor::BufferCreated {
-                file_path,
-                buffer_name,
-                initial_content,
-            }) => {
-                daemon_connection.send(EditorProtocolMessageFromEditor::Open {
-                    uri: "file://".to_owned() + &file_path,
-                })?;
-                
-                buffer_states.insert(
-                    file_path.clone(),
-                    BufferState::new(buffer_name, initial_content)
-                );
-            }
-            Message::FromEditor(MessageFromEditor::SessionStarted { session_name }) => {
-                kak_session = session_name;
-            }
-            Message::FromEditor(MessageFromEditor::CursorMoved { file_path, cursors }) => {
-                daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
-                    uri: "file://".to_owned() + &file_path,
-                    ranges: cursors,
-                })?;
-            }
 
-            Message::FromDaemon(EditorProtocolMessageToEditor::Edit {
-                uri,
-                revision,
-                delta,
-            }) => {
-                let file_path = match uri.strip_prefix("file://") {
-                    Some(path) => path,
-                    None => {
-                        warn!("invalid uri: {}", uri);
-                        continue;
-                    }
+                MessageFromEditor::BufferChanged {
+                    file_path: file_path.to_string(),
+                    new_content,
+                }
+            }
+            "BufferCreated" => {
+                let Some((buffer_name, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
                 };
-                
-                let buffer_state = match buffer_states.get_mut(file_path) {
-                    Some(state) => state,
-                    None => {
-                        warn!("received edit for unknown buffer: {}", file_path);
-                        continue;
-                    }
+                let Some(buffer_name) = buffer_name.strip_suffix('\n') else {
+                    return Ok(None);
                 };
 
-                if revision != buffer_state.editor_revision {
-                    debug!("we've already edited the document further since this revision, skipping");
-                    continue;
+                let Some((file_path, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
+                };
+                let Some(file_path) = file_path.strip_suffix('\n') else {
+                    return Ok(None);
+                };
+
+                let Some((content_length, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
+                };
+                let content_length: usize = content_length.trim_end().parse()?;
+
+                let mut content = String::new();
+                for _ in 0..content_length {
+                    let Some((line, _)) = lines_and_offsets.next() else {
+                        return Ok(None);
+                    };
+                    if !line.ends_with("\n") {
+                        return Ok(None);
+                    }
+                    content.push_str(line);
                 }
 
-                buffer_state.daemon_revision += 1;
+                MessageFromEditor::BufferCreated {
+                    buffer_name: buffer_name.to_string(),
+                    file_path: file_path.to_string(),
+                    initial_content: content,
+                }
+            }
+            "SessionStarted" => {
+                let Some((session_name, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
+                };
+                let Some(session_name) = session_name.strip_suffix('\n') else {
+                    return Ok(None);
+                };
+                MessageFromEditor::SessionStarted {
+                    session_name: session_name.to_string(),
+                }
+            }
+            "CursorMoved" => {
+                let Some((file_path, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
+                };
+                let Some(file_path) = file_path.strip_suffix('\n') else {
+                    return Ok(None);
+                };
 
-                apply_delta_to_buffer(
-                    &buffer_state.prev_content,
-                    &kak_session,
-                    &buffer_state.buffer_name,
-                    &delta
-                )?;
-                buffer_state.prev_content = apply_delta_to_string(&buffer_state.prev_content, &delta);
+                let Some((cursors, _)) = lines_and_offsets.next() else {
+                    return Ok(None);
+                };
+                let cursors = ranges_from_kak_selection_desc(cursors.trim_end())?;
+                MessageFromEditor::CursorMoved {
+                    file_path: file_path.to_string(),
+                    cursors,
+                }
             }
-            Message::FromDaemon(EditorProtocolMessageToEditor::Cursor {
-                userid,
-                name,
-                uri,
-                ranges,
-            }) => {
-                info!("got cursor message for user {name:?}, ranges: {ranges:?}")
+            _ => return Err(anyhow!("unknown message type: {message_type}")),
+        };
+
+        match lines_and_offsets.next() {
+            Some((_, offset)) => src.advance(offset),
+            None => src.advance(src.len()),
+        }
+        Ok(Some(message))
+    }
+}
+
+struct ReopeningReceiver {
+    fifo_path: &'static str,
+    reciever: pipe::Receiver,
+}
+
+impl ReopeningReceiver {
+    fn new(fifo_path: &'static str) -> io::Result<Self> {
+        let reciever = pipe::OpenOptions::new().open_receiver(fifo_path)?;
+        Ok(Self {
+            fifo_path,
+            reciever,
+        })
+    }
+
+    fn reopen_pipe(&mut self) -> io::Result<()> {
+        self.reciever = pipe::OpenOptions::new().open_receiver(self.fifo_path)?;
+        Ok(())
+    }
+}
+
+impl AsyncRead for ReopeningReceiver {
+    fn poll_read(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> std::task::Poll<io::Result<()>> {
+        let len_before = buf.filled().len();
+        // this is a bit sketchy and i don't really understand it
+        let reciever = unsafe { self.as_mut().map_unchecked_mut(|this| &mut this.reciever) };
+        match reciever.poll_read(cx, buf) {
+            std::task::Poll::Ready(Ok(())) => {
+                let len_after = buf.filled().len();
+                let bytes_read = len_after - len_before;
+                if bytes_read == 0 {
+                    log::trace!("reopening pipe");
+                    match self.reopen_pipe() {
+                        Ok(_) => self.poll_read(cx, buf),
+                        Err(e) => std::task::Poll::Ready(Err(e)),
+                    }
+                } else {
+                    std::task::Poll::Ready(Ok(()))
+                }
             }
+            std::task::Poll::Ready(Err(e)) => {
+                eprintln!("got error: {e:?}");
+                std::task::Poll::Ready(Err(e))
+            }
+            std::task::Poll::Pending => std::task::Poll::Pending,
         }
     }
+}
+
+use tokio::io::{AsyncRead, AsyncReadExt};
+use tokio::net::unix::pipe;
+use tokio_util::codec::Framed;
+use tokio_util::codec::LinesCodec;
+
+use tokio_stream::StreamExt;
+use tokio_util::codec::FramedRead;
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Path to the FIFO
+    let fifo_path = "/tmp/ethersync-kak-fifo";
+
+    let rx = ReopeningReceiver::new(fifo_path)?;
+
+    let mut reader = FramedRead::new(rx, EditorMessageDecoder {});
+    while let Some(line) = reader.next().await {
+        let line = line?;
+        println!("{line:?}");
+    }
+    Ok(())
 }
