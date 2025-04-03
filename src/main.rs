@@ -518,10 +518,9 @@ fn maybe_strip_trailing_newline(s: &str) -> &str {
 
 fn apply_delta_to_buffer(
     doc: &str,
-    session_name: &str,
     buffer_name: &str,
     delta: &EditorTextDelta,
-) -> anyhow::Result<()> {
+) -> String {
     debug!("applying delta: {delta:?}");
     let doc_end = first_invalid_position(doc);
     debug!("doc_end: {doc_end:?}");
@@ -570,8 +569,7 @@ fn apply_delta_to_buffer(
         commands
     );
     debug!("executing command: {eval_command}");
-    send_commands_to_kakoune(session_name, &eval_command)?;
-    Ok(())
+    eval_command
 }
 
 enum Message {
@@ -597,13 +595,15 @@ impl DaemonConnection {
     }
 
     async fn send(&mut self, payload: EditorProtocolMessageFromEditor) -> anyhow::Result<()> {
-        let message = serde_json::to_string(&JSONRPCFromEditor::Request {
+        let mut message = serde_json::to_string(&JSONRPCFromEditor::Request {
             jsonrpc: JSONRPCVersionTag,
             id: self.next_id,
             payload,
         })?;
         debug!("sending {}", message);
+        message.push('\n');
         self.write_end.write_all(message.as_bytes()).await?;
+        self.write_end.flush().await?;
         self.next_id += 1;
         Ok(())
     }
@@ -613,6 +613,39 @@ impl DaemonConnection {
             Some(Ok(line)) => Some(serde_json::from_str(&line).map_err(Into::into)),
             Some(Err(e)) => Some(Err(e.into())),
             None => None,
+        }
+    }
+}
+
+struct EditorConnection {
+    read_end: FramedRead<ReopeningReceiver, EditorMessageDecoder>,
+}
+
+impl EditorConnection {
+    fn new(fifo_path: String) -> anyhow::Result<Self> {
+        let read_end = FramedRead::new(ReopeningReceiver::new(fifo_path)?, EditorMessageDecoder);
+        Ok(Self { read_end })
+    }
+
+    async fn next_message(&mut self) -> Option<anyhow::Result<MessageFromEditor>> {
+        self.read_end.next().await
+    }
+
+    async fn execute_commands(session: &str, commands: &str) -> anyhow::Result<()> {
+        let mut child = tokio::process::Command::new("kak")
+            .args(["-p", session])
+            .stdin(Stdio::piped())
+            .spawn()?;
+        let stdin = child
+            .stdin
+            .as_mut()
+            .ok_or(anyhow!("couldn't open child stdin"))?;
+        stdin.write_all(commands.as_bytes()).await?;
+        let status = child.wait().await?;
+        if !status.success() {
+            Err(anyhow!("failed to send commands to kakoune: {commands:?}"))
+        } else {
+            Ok(())
         }
     }
 }
@@ -918,13 +951,13 @@ impl Decoder for EditorMessageDecoder {
 }
 
 struct ReopeningReceiver {
-    fifo_path: &'static str,
+    fifo_path: String,
     reciever: pipe::Receiver,
 }
 
 impl ReopeningReceiver {
-    fn new(fifo_path: &'static str) -> io::Result<Self> {
-        let reciever = pipe::OpenOptions::new().open_receiver(fifo_path)?;
+    fn new(fifo_path: String) -> io::Result<Self> {
+        let reciever = pipe::OpenOptions::new().open_receiver(&fifo_path)?;
         Ok(Self {
             fifo_path,
             reciever,
@@ -932,7 +965,7 @@ impl ReopeningReceiver {
     }
 
     fn reopen_pipe(&mut self) -> io::Result<()> {
-        self.reciever = pipe::OpenOptions::new().open_receiver(self.fifo_path)?;
+        self.reciever = pipe::OpenOptions::new().open_receiver(&self.fifo_path)?;
         Ok(())
     }
 }
@@ -979,37 +1012,139 @@ use tokio_util::codec::FramedRead;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
-    let fifo_path = "/tmp/ethersync-kak-fifo";
-
-    let editor_fifo = ReopeningReceiver::new(fifo_path)?;
-
-    let mut editor_reader = FramedRead::new(editor_fifo, EditorMessageDecoder);
-
     let socket_path = "/run/user/1000/ethersync";
-    let daemon_stream = tokio::net::UnixStream::connect(socket_path).await?;
-    let mut daemon_reader = FramedRead::new(daemon_stream, LinesCodec::new());
+    let stream = tokio::net::UnixStream::connect(socket_path).await?;
+
+    let mut daemon_connection = DaemonConnection::new(stream);
+    let mut editor_connection = EditorConnection::new("/tmp/ethersync-kak-fifo".to_string())?;
+
+    let mut kak_session = "".to_string();
+
+    let mut buffer_states: HashMap<String, BufferState> = HashMap::new();
+
     loop {
         tokio::select! {
-            line = daemon_reader.next() => {
-                let Some(line) = line else {
-                    return Err(anyhow!("connection to daemon lost"))?;
-                };
-                let line = line?;
-                let message: Result<JSONRPCFromDaemon, serde_json::Error> = serde_json::from_str(&line);
+            message = editor_connection.next_message() => {
+                log::trace!("{message:?}");
                 match message {
-                    Ok(message) => {
-                        println!("line from daemon: {message:?}");
+                   Some(Ok(MessageFromEditor::BufferChanged {
+                        file_path,
+                        new_content,
+                    })) => {
+                        let buffer_state = match buffer_states.get_mut(&file_path) {
+                            Some(state) => state,
+                            None => {
+                                warn!("received change for unknown buffer: {}", file_path);
+                                continue;
+                            }
+                        };
+
+                        let delta = EditorTextDelta::from_diff(&buffer_state.prev_content, &new_content);
+                        debug!("delta: {delta:?}");
+                        for edit in delta.sequential_ops(&buffer_state.prev_content) {
+                            daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
+                                delta: EditorTextDelta(vec![edit]),
+                                uri: "file://".to_owned() + &file_path,
+                                revision: buffer_state.daemon_revision,
+                            }).await?;
+                            buffer_state.editor_revision += 1;
+                        }
+                        buffer_state.prev_content = new_content;
                     }
-                    Err(e) => error!("couldn't parse response from daemon: {e}"),
+                   Some(Ok(MessageFromEditor::BufferCreated {
+                        file_path,
+                        buffer_name,
+                        initial_content,
+                    })) => {
+                        daemon_connection.send(EditorProtocolMessageFromEditor::Open {
+                            uri: "file://".to_owned() + &file_path,
+                        }).await?;
+
+                        buffer_states.insert(
+                            file_path.clone(),
+                            BufferState::new(buffer_name, initial_content)
+                        );
+                    }
+                   Some(Ok(MessageFromEditor::SessionStarted { session_name })) => {
+                        kak_session = session_name;
+                    }
+                   Some(Ok(MessageFromEditor::CursorMoved { file_path, cursors })) => {
+                        daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
+                            uri: "file://".to_owned() + &file_path,
+                            ranges: cursors,
+                        }).await?;
+                    }
+                    Some(Err(e)) => {
+                        log::error!("error while reading message from editor: {e}");
+                    }
+                    None => {
+                        log::error!("lost connection to editor");
+                        break;
+                    }
                 }
             }
-            line = editor_reader.next() => {
-                let Some(line) = line else {
-                    return Err(anyhow!("connection to editor lost"))?;
-                };
-                let line = line?;
-                println!("line from editor: {line:?}");
+            message = daemon_connection.next_message() => {
+                log::trace!("{message:?}");
+                match message {
+                    Some(Ok(JSONRPCFromDaemon::Call(EditorProtocolMessageToEditor::Edit {
+                        uri,
+                        revision,
+                        delta,
+                    }))) => {
+                        let file_path = match uri.strip_prefix("file://") {
+                            Some(path) => path,
+                            None => {
+                                warn!("invalid uri: {}", uri);
+                                continue;
+                            }
+                        };
+
+                        let buffer_state = match buffer_states.get_mut(file_path) {
+                            Some(state) => state,
+                            None => {
+                                warn!("received edit for unknown buffer: {}", file_path);
+                                continue;
+                            }
+                        };
+
+                        if revision != buffer_state.editor_revision {
+                            debug!("we've already edited the document further since this revision, skipping");
+                            continue;
+                        }
+
+                        buffer_state.daemon_revision += 1;
+
+                        EditorConnection::execute_commands(&kak_session, &apply_delta_to_buffer(
+                            &buffer_state.prev_content,
+                            &buffer_state.buffer_name,
+                            &delta
+                        )).await?;
+                        buffer_state.prev_content = apply_delta_to_string(&buffer_state.prev_content, &delta);
+                    }
+                    Some(Ok(JSONRPCFromDaemon::Call(EditorProtocolMessageToEditor::Cursor {
+                        userid,
+                        name,
+                        uri,
+                        ranges,
+                    }))) => {
+                        info!("got cursor message for user {name:?}, ranges: {ranges:?}")
+                    }
+                    Some(Ok(JSONRPCFromDaemon::Result(JSONRPCResponse::RequestSuccess { id, result }))) => {
+                        log::debug!("request {id} succeeded, result: {result}");
+                    }
+                    Some(Ok(JSONRPCFromDaemon::Result(JSONRPCResponse::RequestError {id, error }))) => {
+                        Err(anyhow!("request {id:?} failed: {error:?}"))?;
+                    }
+                    Some(Err(e)) => {
+                        Err(e)?;
+                    }
+                    None => {
+                        log::error!("lost connection to daemon");
+                        break;
+                    }
+                }
             }
         }
     }
+    Ok(())
 }
