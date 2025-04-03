@@ -236,7 +236,9 @@ impl EditorTextDelta {
 }
 
 fn position_from_kak_selection_desc(desc: &str) -> anyhow::Result<Position> {
-    let (line, character) = desc.split_once(".").ok_or(anyhow!("invalid position"))?;
+    let (line, character) = desc
+        .split_once(".")
+        .ok_or(anyhow!("invalid position: {desc:?}"))?;
     Ok(Position {
         line: line.parse::<usize>()? - 1,
         character: character.parse::<usize>()? - 1,
@@ -244,7 +246,9 @@ fn position_from_kak_selection_desc(desc: &str) -> anyhow::Result<Position> {
 }
 
 fn range_from_kak_selection_desc(desc: &str) -> anyhow::Result<Range> {
-    let (start, end) = desc.split_once(",").ok_or(anyhow!("invalid range"))?;
+    let (start, end) = desc
+        .split_once(",")
+        .ok_or(anyhow!("invalid range: {desc:?}"))?;
     Ok(Range {
         start: position_from_kak_selection_desc(start)?,
         end: position_from_kak_selection_desc(end)?,
@@ -817,23 +821,32 @@ impl Decoder for EditorMessageDecoder {
                 Some((line, *offset + prev_line.len()))
             });
 
-        let Some((message_type, _)) = lines_and_offsets.next() else {
+        let Some(message_type) = lines_and_offsets
+            .next()
+            .map(|(line, _)| line)
+            .and_then(|line| line.strip_suffix('\n'))
+        else {
             return Ok(None);
         };
 
-        let message = match message_type.trim_end() {
+        let message = match message_type {
             "BufferChanged" => {
-                let Some((file_path, _)) = lines_and_offsets.next() else {
-                    return Ok(None);
-                };
-                let Some(file_path) = file_path.strip_suffix('\n') else {
+                let Some(file_path) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
                     return Ok(None);
                 };
 
-                let Some((new_content_length, _)) = lines_and_offsets.next() else {
+                let Some(new_content_length) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
                     return Ok(None);
                 };
-                let new_content_length: usize = new_content_length.trim_end().parse()?;
+                let new_content_length: usize = new_content_length.parse()?;
 
                 let mut new_content = String::new();
                 for _ in 0..new_content_length {
@@ -852,24 +865,30 @@ impl Decoder for EditorMessageDecoder {
                 }
             }
             "BufferCreated" => {
-                let Some((buffer_name, _)) = lines_and_offsets.next() else {
-                    return Ok(None);
-                };
-                let Some(buffer_name) = buffer_name.strip_suffix('\n') else {
-                    return Ok(None);
-                };
-
-                let Some((file_path, _)) = lines_and_offsets.next() else {
-                    return Ok(None);
-                };
-                let Some(file_path) = file_path.strip_suffix('\n') else {
+                let Some(buffer_name) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
                     return Ok(None);
                 };
 
-                let Some((content_length, _)) = lines_and_offsets.next() else {
+                let Some(file_path) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
                     return Ok(None);
                 };
-                let content_length: usize = content_length.trim_end().parse()?;
+
+                let Some(content_length) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
+                    return Ok(None);
+                };
+                let content_length: usize = content_length.parse()?;
 
                 let mut content = String::new();
                 for _ in 0..content_length {
@@ -889,10 +908,11 @@ impl Decoder for EditorMessageDecoder {
                 }
             }
             "SessionStarted" => {
-                let Some((session_name, _)) = lines_and_offsets.next() else {
-                    return Ok(None);
-                };
-                let Some(session_name) = session_name.strip_suffix('\n') else {
+                let Some(session_name) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
                     return Ok(None);
                 };
                 MessageFromEditor::SessionStarted {
@@ -900,17 +920,22 @@ impl Decoder for EditorMessageDecoder {
                 }
             }
             "CursorMoved" => {
-                let Some((file_path, _)) = lines_and_offsets.next() else {
-                    return Ok(None);
-                };
-                let Some(file_path) = file_path.strip_suffix('\n') else {
+                let Some(file_path) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
                     return Ok(None);
                 };
 
-                let Some((cursors, _)) = lines_and_offsets.next() else {
+                let Some(cursors) = lines_and_offsets
+                    .next()
+                    .map(|(line, _)| line)
+                    .and_then(|line| line.strip_suffix('\n'))
+                else {
                     return Ok(None);
                 };
-                let cursors = ranges_from_kak_selection_desc(cursors.trim_end())?;
+                let cursors = ranges_from_kak_selection_desc(cursors)?;
                 MessageFromEditor::CursorMoved {
                     file_path: file_path.to_string(),
                     cursors,
