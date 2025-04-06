@@ -101,6 +101,17 @@ struct Position {
     character: usize,
 }
 
+impl Position {
+    fn advance(&mut self, c: impl AsRef<str> ) {
+        if c.as_ref() == "\n" {
+            self.line += 1;
+            self.character = 0;
+        } else {
+            self.character += 1;
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 struct Range {
     start: Position,
@@ -202,43 +213,39 @@ impl EditorTextDelta {
             // advance both old and new pointers until old pointer is at the
             // beginning of this edit
             while old_position < edit.range.start {
-                let char = grapheme_iter.next();
-                if char == Some("\n") {
-                    old_position.line += 1;
-                    old_position.character = 0;
-                    new_position.line += 1;
-                    new_position.character = 0;
-                } else {
-                    old_position.character += 1;
-                    new_position.character += 1;
+                if let Some(char) = grapheme_iter.next() {
+                    old_position.advance(char);
+                    new_position.advance(char);
                 }
             }
 
-            let line_diff = new_position.line as i32 - old_position.line as i32;
-            let char_diff = new_position.character as i32 - old_position.character as i32;
+            let op_start = new_position;
+
+            // advance both pointers to the end of the range in the original doc
+            while old_position < edit.range.end {
+                if let Some(char) = grapheme_iter.next() {
+                    old_position.advance(char);
+                    new_position.advance(char);
+                }
+            }
+
+            let op_end = new_position;
+
             result.push(EditorTextOp {
                 range: Range {
-                    start: new_position,
-                    end: Position {
-                        line: (edit.range.end.line as i32 + line_diff) as usize,
-                        character: (edit.range.end.character as i32 + char_diff) as usize,
-                    },
+                    start: op_start,
+                    end: op_end,
                 },
                 replacement: edit.replacement.clone(),
             });
 
+            new_position = op_start;
+
             // advance only new pointer through the replacement
             for char in edit.replacement.graphemes(true) {
-                if char == "\n" {
-                    new_position.line += 1;
-                    new_position.character = 0;
-                } else {
-                    new_position.character += 1;
-                }
+                new_position.advance(char);
             }
 
-            // advance old pointer to the end of the range in the original doc
-            old_position = edit.range.end;
         }
         result
     }
@@ -511,12 +518,7 @@ fn apply_delta_to_string(prev_content: &str, delta: &EditorTextDelta) -> String 
             match grapheme_iter.next() {
                 Some(char) => {
                     new_content += char;
-                    if char == "\n" {
-                        old_position.line += 1;
-                        old_position.character = 0;
-                    } else {
-                        old_position.character += 1;
-                    }
+                    old_position.advance(char);
                 }
                 None => {
                     debug!("reached end of document while applying delta, old pos: {old_position:?}, edit range start: {:?}", edit.range.start);
@@ -538,12 +540,7 @@ fn apply_delta_to_string(prev_content: &str, delta: &EditorTextDelta) -> String 
         while old_position < edit.range.end {
             match grapheme_iter.next() {
                 Some(char) => {
-                    if char == "\n" {
-                        old_position.line += 1;
-                        old_position.character = 0;
-                    } else {
-                        old_position.character += 1;
-                    }
+                    old_position.advance(char)
                 }
                 None => {
                     break;
