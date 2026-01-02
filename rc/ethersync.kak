@@ -17,7 +17,7 @@ define-command -hidden es-if-changed-since -params 3 -docstring %{
 }
 
 define-command -hidden es-send -params 1.. %{
-    echo -end-of-line -to-file /tmp/ethersync-kak-fifo %arg{@}
+    echo -end-of-line -to-file /tmp/teamtype-kak-fifo %arg{@}
 }
 
 define-command -hidden es-did-change %{
@@ -25,7 +25,7 @@ define-command -hidden es-did-change %{
         es-send "BufferChanged"
         es-send %val{buffile}
         es-send %val{buf_line_count}
-	    write -force /tmp/ethersync-kak-fifo
+	    write -force /tmp/teamtype-kak-fifo
     }
 }
 
@@ -34,7 +34,7 @@ define-command -hidden es-open-file %{
     es-send %val{bufname}
     es-send %val{buffile}
     es-send %val{buf_line_count}
-    write -force /tmp/ethersync-kak-fifo
+    write -force /tmp/teamtype-kak-fifo
 }
 
 define-command -hidden es-cursor-moved %{

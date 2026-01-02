@@ -1,19 +1,22 @@
 use anyhow::anyhow;
+use bytes::{Buf, BytesMut};
 use itertools::Itertools;
 use log::{debug, info, warn};
+use nix::sys::stat;
+use nix::unistd;
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::collections::HashMap;
 use std::io::{self};
+use std::path::Path;
 use std::process::Stdio;
-use unicode_segmentation::UnicodeSegmentation;
-use bytes::{Buf, BytesMut};
-use tokio_util::codec::Decoder;
 use tokio::io::{AsyncRead, AsyncWriteExt};
 use tokio::net::unix::{self, pipe};
-use tokio_util::codec::LinesCodec;
 use tokio_stream::StreamExt;
+use tokio_util::codec::Decoder;
 use tokio_util::codec::FramedRead;
+use tokio_util::codec::LinesCodec;
+use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
@@ -270,6 +273,7 @@ fn ranges_from_kak_selection_desc(desc: &str) -> anyhow::Result<Vec<Range>> {
 enum EditorProtocolMessageFromEditor {
     Open {
         uri: DocumentUri,
+        content: String,
     },
     Close {
         uri: DocumentUri,
@@ -440,13 +444,21 @@ impl DaemonConnection {
 }
 
 struct EditorConnection {
+    fifo_path: String,
     read_end: FramedRead<ReopeningReceiver, EditorMessageDecoder>,
 }
 
 impl EditorConnection {
     fn new(fifo_path: String) -> anyhow::Result<Self> {
-        let read_end = FramedRead::new(ReopeningReceiver::new(fifo_path)?, EditorMessageDecoder);
-        Ok(Self { read_end })
+        unistd::mkfifo(Path::new(&fifo_path), stat::Mode::S_IRWXU)?;
+        let read_end = FramedRead::new(
+            ReopeningReceiver::new(fifo_path.clone())?,
+            EditorMessageDecoder,
+        );
+        Ok(Self {
+            fifo_path,
+            read_end,
+        })
     }
 
     async fn next_message(&mut self) -> Option<anyhow::Result<MessageFromEditor>> {
@@ -469,6 +481,12 @@ impl EditorConnection {
         } else {
             Ok(())
         }
+    }
+}
+
+impl Drop for EditorConnection {
+    fn drop(&mut self) {
+        std::fs::remove_file(&self.fifo_path).unwrap();
     }
 }
 
@@ -569,6 +587,7 @@ impl Decoder for EditorMessageDecoder {
 
     fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         let str = std::str::from_utf8(src)?;
+        log::trace!("got frame for decoding: {str:?}");
         let mut lines_and_offsets = str
             // this instead of ".lines()" because we only want full lines
             .split_inclusive('\n')
@@ -697,11 +716,13 @@ impl AsyncRead for ReopeningReceiver {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
 
-    let socket_path = "/run/user/1000/ethersync";
+    let socket_path = ".teamtype/socket";
     let stream = tokio::net::UnixStream::connect(socket_path).await?;
 
     let mut daemon_connection = DaemonConnection::new(stream);
-    let mut editor_connection = EditorConnection::new("/tmp/ethersync-kak-fifo".to_string())?;
+
+    let fifo_path = "/tmp/teamtype-kak-fifo";
+    let mut editor_connection = EditorConnection::new(fifo_path.to_string())?;
 
     let mut kak_session = "".to_string();
 
@@ -743,6 +764,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     })) => {
                         daemon_connection.send(EditorProtocolMessageFromEditor::Open {
                             uri: "file://".to_owned() + &file_path,
+                            content: initial_content.clone(),
                         }).await?;
 
                         buffer_states.insert(
