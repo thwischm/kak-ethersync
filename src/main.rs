@@ -303,6 +303,10 @@ enum MessageFromEditor {
         file_path: String,
         initial_content: String,
     },
+    BufferClosed {
+        buffer_name: String,
+        file_path: String,
+    },
     CursorMoved {
         file_path: String,
         cursors: Vec<Range>,
@@ -635,6 +639,15 @@ impl Decoder for EditorMessageDecoder {
                     initial_content: content,
                 }
             }
+            "BufferClosed" => {
+                let (buffer_name, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
+                let (file_path, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
+
+                MessageFromEditor::BufferClosed {
+                    buffer_name: buffer_name.to_string(),
+                    file_path: file_path.to_string(),
+                }
+            }
             "SessionStarted" => {
                 let (session_name, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
                 MessageFromEditor::SessionStarted {
@@ -771,6 +784,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             file_path.clone(),
                             BufferState::new(buffer_name, initial_content)
                         );
+                    }
+                    Some(Ok(
+                        MessageFromEditor::BufferClosed { buffer_name, file_path }
+                    )) => {
+                        daemon_connection.send(
+                            EditorProtocolMessageFromEditor::Close{uri: "file://".to_owned() + &file_path}
+                        ).await?;
+                        buffer_states.remove(&file_path);
                     }
                    Some(Ok(MessageFromEditor::SessionStarted { session_name })) => {
                         kak_session = session_name;

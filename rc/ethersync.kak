@@ -37,6 +37,12 @@ define-command -hidden es-open-file %{
     write -force /tmp/teamtype-kak-fifo
 }
 
+define-command -hidden es-close-file %{
+    es-send "BufferClosed"
+    es-send %val{bufname}
+    es-send %val{buffile}
+}
+
 define-command -hidden es-cursor-moved %{
     es-send "CursorMoved"
     es-send %val{buffile}
@@ -54,5 +60,7 @@ define-command es-enable -docstring "Enable Ethersync" %{
 	hook -group es %arg{1} NormalIdle .* es-cursor-moved
 
 	hook -group es %arg{1} BufCreate .* es-open-file
+	hook -group es %arg{1} BufClose .* es-close-file
+
 	es-open-file
 }
