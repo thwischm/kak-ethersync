@@ -572,8 +572,10 @@ impl Decoder for EditorMessageDecoder {
         let mut lines_and_offsets = str
             // this instead of ".lines()" because we only want full lines
             .split_inclusive('\n')
-            .scan(("", 0), |(prev_line, offset), line| {
-                Some((line, *offset + prev_line.len()))
+            .scan(0, |offset, line| {
+                let result = Some((line, *offset));
+                *offset += line.len();
+                result
             })
             .filter_map(|(line, offset)| line.strip_suffix('\n').map(|line| (line, offset)));
 
