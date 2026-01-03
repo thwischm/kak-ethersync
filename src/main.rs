@@ -871,22 +871,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     Some(Ok(JSONRPCFromDaemon::Call(EditorProtocolMessageToEditor::Cursor {
                         userid,
-                        name,
+                        name: _,
                         uri,
                         ranges,
                     }))) => {
-                        // TODO: use different colors depending on user
+                        // TODO: show anchor and selection in different colors
+                        // TODO: ranges from the daemon are exclusive, but we treat them as if they are inclusive
                         let file_path = uri_to_filepath(&uri);
-                        let Some(buffer_state) =  buffer_states.get_mut(file_path) else{
+                        let Some(buffer_state) =  buffer_states.get_mut(file_path) else {
                             // the buffer is not open
                             continue;
                         };
                         buffer_state.cursors.insert(userid, ranges);
-                        let cursor_range_specs = buffer_state.cursors.iter()
-                            .flat_map(|(user, ranges)| {
-                                ranges.iter().map(|range| {
+                        let cursor_colors = ["ff6188", "ab9df2", "78dce8", "a9dc76"]; // TODO: configurable colors
+                        let cursor_range_specs = buffer_state.cursors.values().zip(cursor_colors.iter().cycle())
+                            .flat_map(|(ranges, user_color)| {
+                                ranges.iter().map(move |range| {
                                     let kak_range = to_kak_range(range);
-                                    format!("''{kak_range}|default,rgb:ff6188''") // doubled single quotes needed for escaping later
+                                    format!("''{kak_range}|default,rgb:{user_color}''") // doubled single quotes needed for escaping later
                                 })
                             })
                             .join(" ");
