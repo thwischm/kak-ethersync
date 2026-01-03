@@ -407,7 +407,6 @@ fn apply_delta_to_buffer(doc: &str, buffer_name: &str, delta: &EditorTextDelta) 
         escape_single_quotes(buffer_name),
         commands
     );
-    debug!("executing command: {eval_command}");
     eval_command
 }
 
@@ -474,6 +473,7 @@ impl EditorConnection {
     }
 
     async fn execute_commands(session: &str, commands: &str) -> anyhow::Result<()> {
+        debug!("executing command: {commands}");
         let mut child = tokio::process::Command::new("kak")
             .args(["-p", session])
             .stdin(Stdio::piped())
@@ -873,7 +873,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         uri,
                         ranges,
                     }))) => {
-                        info!("got cursor message for user {name:?}, ranges: {ranges:?}")
+                        // TODO: remember and reapply cursors from other users
+                        // TODO: use different colors depending on user
+                        let file_path = uri_to_filepath(&uri);
+                        if !buffer_states.contains_key(file_path) {
+                            // the editor isn't here yet
+                            continue;
+                        }
+                        let cursor_range_specs = ranges.iter().map(to_kak_range)
+                            .map(|range| format!("''{range}|default,rgb:ff6188''")) // doubled single quotes needed for escaping later
+                            .join(" ");
+                        let set_ranges_command = format!(
+                            "evaluate-commands -buffer '{}' 'set-option buffer teamtype_remote_cursor_ranges %val{{timestamp}} {}'",
+                            escape_single_quotes(file_path), cursor_range_specs);
+                        EditorConnection::execute_commands(&kak_session, &set_ranges_command).await?;
+                        info!("got cursor message for user {name:?}, file {uri:?}, ranges: {ranges:?}");
                     }
                     Some(Ok(JSONRPCFromDaemon::Result(JSONRPCResponse::RequestSuccess { id, result }))) => {
                         log::debug!("request {id} succeeded, result: {result}");

@@ -49,6 +49,8 @@ define-command -hidden es-cursor-moved %{
     es-send %val{selections_char_desc}
 }
 
+declare-option range-specs teamtype_remote_cursor_ranges
+
 define-command es-enable -docstring "Enable Ethersync" %{
     es-send "SessionStarted"
     es-send %val{session}
@@ -61,6 +63,8 @@ define-command es-enable -docstring "Enable Ethersync" %{
 
 	hook -group es %arg{1} BufCreate .* es-open-file
 	hook -group es %arg{1} BufClose .* es-close-file
+
+    add-highlighter global/ ranges teamtype_remote_cursor_ranges
 
 	es-open-file
 }
