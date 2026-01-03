@@ -6,7 +6,7 @@ use nix::sys::stat;
 use nix::unistd;
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::io::{self};
 use std::path::Path;
 use std::process::Stdio;
@@ -562,6 +562,7 @@ struct BufferState {
     daemon_revision: usize,
     buffer_name: String,
     prev_content: String,
+    cursors: BTreeMap<String, Vec<Range>>,
 }
 
 impl BufferState {
@@ -571,6 +572,7 @@ impl BufferState {
             daemon_revision: 0,
             buffer_name,
             prev_content: initial_content,
+            cursors: BTreeMap::new(),
         }
     }
 }
@@ -873,21 +875,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         uri,
                         ranges,
                     }))) => {
-                        // TODO: remember and reapply cursors from other users
                         // TODO: use different colors depending on user
                         let file_path = uri_to_filepath(&uri);
-                        if !buffer_states.contains_key(file_path) {
-                            // the editor isn't here yet
+                        let Some(buffer_state) =  buffer_states.get_mut(file_path) else{
+                            // the buffer is not open
                             continue;
-                        }
-                        let cursor_range_specs = ranges.iter().map(to_kak_range)
-                            .map(|range| format!("''{range}|default,rgb:ff6188''")) // doubled single quotes needed for escaping later
+                        };
+                        buffer_state.cursors.insert(userid, ranges);
+                        let cursor_range_specs = buffer_state.cursors.iter()
+                            .flat_map(|(user, ranges)| {
+                                ranges.iter().map(|range| {
+                                    let kak_range = to_kak_range(range);
+                                    format!("''{kak_range}|default,rgb:ff6188''") // doubled single quotes needed for escaping later
+                                })
+                            })
                             .join(" ");
                         let set_ranges_command = format!(
                             "evaluate-commands -buffer '{}' 'set-option buffer teamtype_remote_cursor_ranges %val{{timestamp}} {}'",
                             escape_single_quotes(file_path), cursor_range_specs);
                         EditorConnection::execute_commands(&kak_session, &set_ranges_command).await?;
-                        info!("got cursor message for user {name:?}, file {uri:?}, ranges: {ranges:?}");
                     }
                     Some(Ok(JSONRPCFromDaemon::Result(JSONRPCResponse::RequestSuccess { id, result }))) => {
                         log::debug!("request {id} succeeded, result: {result}");
