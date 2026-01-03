@@ -18,6 +18,10 @@ use tokio_util::codec::FramedRead;
 use tokio_util::codec::LinesCodec;
 use unicode_segmentation::UnicodeSegmentation;
 
+use std::fs::File;
+
+use daemonize::Daemonize;
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
 enum EditorProtocolMessageToEditor {
@@ -725,8 +729,22 @@ impl AsyncRead for ReopeningReceiver {
     }
 }
 
+fn uri_to_filepath(uri: &str) -> &str {
+    uri.strip_prefix("file://")
+        .unwrap_or_else(|| panic!("file uri does not start with 'file://': {uri:?}"))
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let stdout = File::create("/tmp/kak-teamtype.out").unwrap();
+    let stderr = File::create("/tmp/kak-teamtype.err").unwrap();
+
+    Daemonize::new()
+        .working_directory(std::env::current_dir().unwrap())
+        .stdout(stdout)
+        .stderr(stderr)
+        .start()?;
+
     env_logger::init();
 
     let socket_path = ".teamtype/socket";
