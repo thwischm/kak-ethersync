@@ -452,14 +452,19 @@ impl DaemonConnection {
 
 struct EditorConnection {
     fifo_path: String,
-    read_end: FramedRead<ReopeningReceiver, EditorMessageDecoder>,
+    read_end: FramedRead<pipe::Receiver, EditorMessageDecoder>,
 }
 
 impl EditorConnection {
     fn new(fifo_path: String) -> anyhow::Result<Self> {
         unistd::mkfifo(Path::new(&fifo_path), stat::Mode::S_IRWXU)?;
         let read_end = FramedRead::new(
-            ReopeningReceiver::new(fifo_path.clone())?,
+            pipe::OpenOptions::new()
+                .read_write(true)
+                // rw so the reciever can wait for another writer when the pipe is closed.
+                // See https://docs.rs/tokio/latest/tokio/net/unix/pipe/struct.Receiver.html#examples
+                // Might only work on linux.
+                .open_receiver(fifo_path.clone())?,
             EditorMessageDecoder,
         );
         Ok(Self {
@@ -676,58 +681,6 @@ impl Decoder for EditorMessageDecoder {
             None => src.advance(src.len()),
         }
         Ok(Some(message))
-    }
-}
-
-struct ReopeningReceiver {
-    fifo_path: String,
-    reciever: pipe::Receiver,
-}
-
-impl ReopeningReceiver {
-    fn new(fifo_path: String) -> io::Result<Self> {
-        let reciever = pipe::OpenOptions::new().open_receiver(&fifo_path)?;
-        Ok(Self {
-            fifo_path,
-            reciever,
-        })
-    }
-
-    fn reopen_pipe(&mut self) -> io::Result<()> {
-        self.reciever = pipe::OpenOptions::new().open_receiver(&self.fifo_path)?;
-        Ok(())
-    }
-}
-
-impl AsyncRead for ReopeningReceiver {
-    fn poll_read(
-        mut self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-        buf: &mut tokio::io::ReadBuf<'_>,
-    ) -> std::task::Poll<io::Result<()>> {
-        let len_before = buf.filled().len();
-        // this is a bit sketchy and i don't really understand it
-        let reciever = unsafe { self.as_mut().map_unchecked_mut(|this| &mut this.reciever) };
-        match reciever.poll_read(cx, buf) {
-            std::task::Poll::Ready(Ok(())) => {
-                let len_after = buf.filled().len();
-                let bytes_read = len_after - len_before;
-                if bytes_read == 0 {
-                    log::trace!("reopening pipe");
-                    match self.reopen_pipe() {
-                        Ok(_) => self.poll_read(cx, buf),
-                        Err(e) => std::task::Poll::Ready(Err(e)),
-                    }
-                } else {
-                    std::task::Poll::Ready(Ok(()))
-                }
-            }
-            std::task::Poll::Ready(Err(e)) => {
-                eprintln!("got error: {e:?}");
-                std::task::Poll::Ready(Err(e))
-            }
-            std::task::Poll::Pending => std::task::Poll::Pending,
-        }
     }
 }
 
