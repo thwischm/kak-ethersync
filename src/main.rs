@@ -3,7 +3,6 @@ use bytes::{Buf, BytesMut};
 use daemonize::Daemonize;
 use itertools::Itertools;
 use log::{debug, info, warn};
-use nix::libc::NETLINK_BROADCAST_ERROR;
 use nix::sys::stat;
 use nix::unistd;
 use serde::{Deserialize, Serialize};
@@ -12,7 +11,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::fs::File;
 use std::path::Path;
 use std::process::Stdio;
-use tokio::io::{AsyncRead, AsyncWriteExt};
+use tokio::io::AsyncWriteExt;
 use tokio::net::unix::{self, pipe};
 use tokio_stream::StreamExt;
 use tokio_util::codec::Decoder;
@@ -687,6 +686,10 @@ fn uri_to_filepath(uri: &str) -> &str {
         .unwrap_or_else(|| panic!("file uri does not start with 'file://': {uri:?}"))
 }
 
+fn filepath_to_uri(filepath: &str) -> String {
+    format!("file://{filepath}")
+}
+
 const CURSOR_COLORS: [&str; 4] = ["ff6188", "ab9df2", "78dce8", "a9dc76"]; // TODO: configurable colors
 
 struct ColorSupply {
@@ -754,7 +757,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         for edit in delta.sequential_ops(&buffer_state.prev_content) {
                             daemon_connection.send(EditorProtocolMessageFromEditor::Edit {
                                 delta: EditorTextDelta(vec![edit]),
-                                uri: "file://".to_owned() + &file_path,
+                                uri: filepath_to_uri(&file_path),
                                 revision: buffer_state.daemon_revision,
                             }).await?;
                             buffer_state.editor_revision += 1;
@@ -767,7 +770,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         initial_content,
                     })) => {
                         daemon_connection.send(EditorProtocolMessageFromEditor::Open {
-                            uri: "file://".to_owned() + &file_path,
+                            uri: filepath_to_uri(&file_path),
                             content: initial_content.clone(),
                         }).await?;
 
@@ -780,7 +783,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         MessageFromEditor::BufferClosed { buffer_name, file_path }
                     )) => {
                         daemon_connection.send(
-                            EditorProtocolMessageFromEditor::Close{uri: "file://".to_owned() + &file_path}
+                            EditorProtocolMessageFromEditor::Close{uri: filepath_to_uri(&file_path)}
                         ).await?;
                         buffer_states.remove(&file_path);
                     }
@@ -789,7 +792,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                    Some(Ok(MessageFromEditor::CursorMoved { file_path, cursors })) => {
                         daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
-                            uri: "file://".to_owned() + &file_path,
+                            uri: filepath_to_uri(&file_path),
                             ranges: cursors,
                         }).await?;
                     }
@@ -810,13 +813,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         revision,
                         delta,
                     }))) => {
-                        let file_path = match uri.strip_prefix("file://") {
-                            Some(path) => path,
-                            None => {
-                                warn!("invalid uri: {}", uri);
-                                continue;
-                            }
-                        };
+                        let file_path = uri_to_filepath(&uri);
 
                         let buffer_state = match buffer_states.get_mut(file_path) {
                             Some(state) => state,
