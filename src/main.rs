@@ -1,13 +1,15 @@
 use anyhow::anyhow;
 use bytes::{Buf, BytesMut};
+use daemonize::Daemonize;
 use itertools::Itertools;
 use log::{debug, info, warn};
+use nix::libc::NETLINK_BROADCAST_ERROR;
 use nix::sys::stat;
 use nix::unistd;
 use serde::{Deserialize, Serialize};
 use similar::{DiffOp, TextDiff};
 use std::collections::{BTreeMap, HashMap};
-use std::io::{self};
+use std::fs::File;
 use std::path::Path;
 use std::process::Stdio;
 use tokio::io::{AsyncRead, AsyncWriteExt};
@@ -17,10 +19,6 @@ use tokio_util::codec::Decoder;
 use tokio_util::codec::FramedRead;
 use tokio_util::codec::LinesCodec;
 use unicode_segmentation::UnicodeSegmentation;
-
-use std::fs::File;
-
-use daemonize::Daemonize;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "method", content = "params", rename_all = "camelCase")]
@@ -689,6 +687,24 @@ fn uri_to_filepath(uri: &str) -> &str {
         .unwrap_or_else(|| panic!("file uri does not start with 'file://': {uri:?}"))
 }
 
+const CURSOR_COLORS: [&str; 4] = ["ff6188", "ab9df2", "78dce8", "a9dc76"]; // TODO: configurable colors
+
+struct ColorSupply {
+    next_color_index: usize,
+}
+
+impl ColorSupply {
+    fn new() -> Self {
+        Self {next_color_index: 0}
+    }
+
+    fn fresh_color(&mut self) -> &'static str {
+        let result = CURSOR_COLORS[self.next_color_index];
+        self.next_color_index = (self.next_color_index + 1) % CURSOR_COLORS.len();
+        result
+    }
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stdout = File::create("/tmp/kak-teamtype.out").unwrap();
@@ -713,8 +729,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut kak_session = "".to_string();
 
     let mut buffer_states: HashMap<String, BufferState> = HashMap::new();
-    let mut fresh_colors = ["ff6188", "ab9df2", "78dce8", "a9dc76"].into_iter().cycle(); // TODO: configurable colors
-    let mut user_colors: HashMap<String, String> = HashMap::new();
+    let mut fresh_colors = ColorSupply::new();
+    let mut user_colors: HashMap<String, &'static str> = HashMap::new();
 
     loop {
         tokio::select! {
@@ -838,7 +854,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             continue;
                         };
                         if !user_colors.contains_key(&userid) {
-                            user_colors.insert(userid.clone(), fresh_colors.next().unwrap().to_string());
+                            user_colors.insert(userid.clone(), fresh_colors.fresh_color());
                         }
                         buffer_state.cursors.insert(userid, ranges);
                         let cursor_range_specs = buffer_state.cursors.iter()
