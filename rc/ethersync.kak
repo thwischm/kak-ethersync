@@ -56,6 +56,13 @@ declare-option str teamtype_command "kak-teamtype"
 
 set-option global teamtype_command "cargo run --manifest-path=/home/salmiak/dev/kak-ethersync/Cargo.toml --"
 
+define-command es-disable %{
+    es-send "SessionEnded"
+
+    remove-hooks global es
+    remove-highlighter global/teamtype_remote_cursor_ranges
+}
+
 define-command es-enable -docstring "Enable Ethersync" %{
 	nop %sh{
 		echo "hallo" >/dev/stderr
@@ -70,6 +77,8 @@ define-command es-enable -docstring "Enable Ethersync" %{
 
 	hook -group es %arg{1} BufCreate .* es-open-file
 	hook -group es %arg{1} BufClose .* es-close-file
+
+	hook -group es %arg{1} KakEnd .* es-disable
 
     add-highlighter global/ ranges teamtype_remote_cursor_ranges
 

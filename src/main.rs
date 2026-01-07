@@ -310,6 +310,7 @@ enum MessageFromEditor {
         file_path: String,
         cursors: Vec<Range>,
     },
+    SessionEnded,
 }
 
 fn to_kak_range(r: &Range) -> String {
@@ -662,6 +663,9 @@ impl Decoder for EditorMessageDecoder {
                     cursors: ranges_from_kak_selection_desc(cursors)?,
                 }
             }
+            "SessionEnded" => {
+                MessageFromEditor::SessionEnded
+            }
             _ => return Err(anyhow!("unknown message type: {message_type}")),
         };
 
@@ -794,6 +798,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             uri: filepath_to_uri(&file_path),
                             ranges: cursors,
                         }).await?;
+                    }
+
+                    Some(Ok(MessageFromEditor::SessionEnded)) => {
+                        log::debug!("session ended, exiting");
+                        break;
                     }
 
                     Some(Err(e)) => {
