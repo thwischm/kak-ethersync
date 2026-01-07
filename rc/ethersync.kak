@@ -54,8 +54,6 @@ declare-option range-specs teamtype_remote_cursor_ranges
 declare-option str teamtype_fifo "/tmp/teamtype-kak-fifo"
 declare-option str teamtype_command "kak-teamtype"
 
-set-option global teamtype_command "cargo run --manifest-path=/home/salmiak/dev/kak-ethersync/Cargo.toml --"
-
 define-command es-disable %{
     es-send "SessionEnded"
 
