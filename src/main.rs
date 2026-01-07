@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use bytes::{Buf, BytesMut};
+use clap::Parser;
 use daemonize::Daemonize;
 use itertools::Itertools;
 use log::{debug, info, warn};
@@ -292,9 +293,6 @@ enum EditorProtocolMessageFromEditor {
 
 #[derive(Debug)]
 enum MessageFromEditor {
-    SessionStarted {
-        session_name: String,
-    },
     BufferChanged {
         file_path: String,
         new_content: String,
@@ -656,12 +654,6 @@ impl Decoder for EditorMessageDecoder {
                     file_path: file_path.to_string(),
                 }
             }
-            "SessionStarted" => {
-                let (session_name, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
-                MessageFromEditor::SessionStarted {
-                    session_name: session_name.to_string(),
-                }
-            }
             "CursorMoved" => {
                 let (file_path, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
                 let (cursors, _) = try_and_wrap_in_ok!(lines_and_offsets.next());
@@ -708,8 +700,18 @@ impl ColorSupply {
     }
 }
 
+#[derive(clap::Parser)]
+struct Args {
+    #[arg(long)]
+    kak_session: String,
+    #[arg(long)]
+    kak_fifo: String,
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+	let Args {kak_session, kak_fifo} = Args::parse();
+    
     let stdout = File::create("/tmp/kak-teamtype.out").unwrap();
     let stderr = File::create("/tmp/kak-teamtype.err").unwrap();
 
@@ -726,10 +728,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut daemon_connection = DaemonConnection::new(stream);
 
-    let fifo_path = "/tmp/teamtype-kak-fifo";
-    let mut editor_connection = EditorConnection::new(fifo_path.to_string())?;
-
-    let mut kak_session = "".to_string();
+    let mut editor_connection = EditorConnection::new(kak_fifo.to_string())?;
 
     let mut buffer_states: HashMap<String, BufferState> = HashMap::new();
     let mut fresh_colors = ColorSupply::new();
@@ -764,6 +763,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                         buffer_state.prev_content = new_content;
                     }
+
                    Some(Ok(MessageFromEditor::BufferCreated {
                         file_path,
                         buffer_name,
@@ -779,6 +779,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             BufferState::new(buffer_name, initial_content)
                         );
                     }
+
                     Some(Ok(
                         MessageFromEditor::BufferClosed { buffer_name, file_path }
                     )) => {
@@ -787,18 +788,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         ).await?;
                         buffer_states.remove(&file_path);
                     }
-                   Some(Ok(MessageFromEditor::SessionStarted { session_name })) => {
-                        kak_session = session_name;
-                    }
+
                    Some(Ok(MessageFromEditor::CursorMoved { file_path, cursors })) => {
                         daemon_connection.send(EditorProtocolMessageFromEditor::Cursor {
                             uri: filepath_to_uri(&file_path),
                             ranges: cursors,
                         }).await?;
                     }
+
                     Some(Err(e)) => {
                         log::error!("error while reading message from editor: {e}");
                     }
+
                     None => {
                         log::error!("lost connection to editor");
                         break;
@@ -837,6 +838,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         )).await?;
                         buffer_state.prev_content = apply_delta_to_string(&buffer_state.prev_content, &delta);
                     }
+
                     Some(Ok(JSONRPCFromDaemon::Call(EditorProtocolMessageToEditor::Cursor {
                         userid,
                         name: _,
@@ -868,15 +870,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             escape_single_quotes(file_path), cursor_range_specs);
                         EditorConnection::execute_commands(&kak_session, &set_ranges_command).await?;
                     }
+
                     Some(Ok(JSONRPCFromDaemon::Result(JSONRPCResponse::RequestSuccess { id, result }))) => {
                         log::debug!("request {id} succeeded, result: {result}");
                     }
+
                     Some(Ok(JSONRPCFromDaemon::Result(JSONRPCResponse::RequestError {id, error }))) => {
                         Err(anyhow!("request {id:?} failed: {error:?}"))?;
                     }
+
                     Some(Err(e)) => {
                         Err(e)?;
                     }
+
                     None => {
                         log::error!("lost connection to daemon");
                         break;

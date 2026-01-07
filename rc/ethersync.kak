@@ -51,10 +51,17 @@ define-command -hidden es-cursor-moved %{
 
 declare-option range-specs teamtype_remote_cursor_ranges
 
-define-command es-enable -docstring "Enable Ethersync" %{
-    es-send "SessionStarted"
-    es-send %val{session}
+declare-option str teamtype_fifo "/tmp/teamtype-kak-fifo"
+declare-option str teamtype_command "kak-teamtype"
 
+set-option global teamtype_command "cargo run --manifest-path=/home/salmiak/dev/kak-ethersync/Cargo.toml --"
+
+define-command es-enable -docstring "Enable Ethersync" %{
+	nop %sh{
+		echo "hallo" >/dev/stderr
+		$kak_opt_teamtype_command --kak-session "$kak_session" --kak-fifo "$kak_opt_teamtype_fifo"
+	}
+    
 	hook -group es %arg{1} InsertIdle .* es-did-change
 	hook -group es %arg{1} NormalIdle .* es-did-change
 
